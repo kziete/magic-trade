@@ -96,6 +96,9 @@ export const cardsApi = createApi({
         method: "DELETE",
       }),
     }),
+    getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number }>({
+      query: ({ username, page }) => `users/${username}/inventory/?page=${page}`,
+    }),
   }),
 });
 
@@ -107,4 +110,5 @@ export const {
   useGetInventoryQuery,
   useAddToInventoryMutation,
   useDeleteFromInventoryMutation,
+  useGetUserInventoryQuery,
 } = cardsApi;

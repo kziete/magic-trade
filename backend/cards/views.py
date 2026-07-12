@@ -74,3 +74,13 @@ class InventoryDetailView(RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return Available.objects.filter(user=self.request.user)
+
+
+class UserInventoryListView(ListAPIView):
+    serializer_class = AvailableSerializer
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        return Available.objects.filter(user__username=username).select_related(
+            'user', 'variant__card', 'variant__card_set'
+        )

@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
+import Link from "next/link";
 import {
   Container,
   Title,
@@ -15,6 +16,7 @@ import {
   Select,
   Grid,
   Avatar,
+  Anchor,
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import {
@@ -149,7 +151,9 @@ export default function CardAvailablePage({
                       <Avatar size="sm" radius="xl">
                         <IconUser size={16} />
                       </Avatar>
-                      <Text size="sm">{item.username}</Text>
+                      <Anchor component={Link} href={`/inventory/${item.username}`} size="sm">
+                        {item.username}
+                      </Anchor>
                     </Group>
                   </Stack>
                 </Group>

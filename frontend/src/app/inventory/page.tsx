@@ -6,26 +6,23 @@ import {
   Container,
   Title,
   Stack,
-  Table,
-  Badge,
   Loader,
   Center,
-  Text,
   Pagination,
   Group,
   Button,
-  ActionIcon,
 } from "@mantine/core";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
+import InventoryTable from "@/components/InventoryTable";
 
 export default function InventoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
-  const [modalOpened, setModalOpened] = useState(false);
+  const [panelOpened, setPanelOpened] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -76,85 +73,32 @@ export default function InventoryPage() {
       <Stack gap="lg">
         <Group justify="space-between" align="center">
           <Title order={1}>Mi Inventario</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => setModalOpened(true)}>
+          <Button leftSection={<IconPlus size={16} />} onClick={() => setPanelOpened(true)}>
             Agregar
           </Button>
         </Group>
 
-        {isLoading && (
-          <Center>
-            <Loader size="lg" />
-          </Center>
-        )}
-
-        {error && (
-          <Text c="red" ta="center">
-            Error al cargar inventario
-          </Text>
-        )}
+        <InventoryTable
+          items={inventoryData?.results ?? []}
+          isLoading={isLoading}
+          error={!!error}
+          emptyMessage="No tienes cartas en tu inventario"
+          onDelete={handleDelete}
+        />
 
         {!isLoading && !error && inventoryData && inventoryData.results.length > 0 && (
-          <>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Carta</Table.Th>
-                  <Table.Th>Set</Table.Th>
-                  <Table.Th>Finish</Table.Th>
-                  <Table.Th>Condición</Table.Th>
-                  <Table.Th></Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {inventoryData.results.map((item) => (
-                  <Table.Tr key={item.id}>
-                    <Table.Td>
-                      <Text size="sm" fw={500}>{item.card_name}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" c="dimmed">{item.set_name}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge size="sm" color={item.finish === "foil" ? "yellow" : "gray"}>
-                        {item.finish}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge size="sm" color="blue">{item.condition}</Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        onClick={() => handleDelete(item.id, item.card_name)}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-
-            <Group justify="center">
-              <Pagination
-                value={page}
-                onChange={handlePageChange}
-                total={totalPages}
-              />
-            </Group>
-          </>
-        )}
-
-        {!isLoading && !error && inventoryData && inventoryData.results.length === 0 && (
-          <Text ta="center" c="dimmed">
-            No tienes cartas en tu inventario
-          </Text>
+          <Group justify="center">
+            <Pagination
+              value={page}
+              onChange={handlePageChange}
+              total={totalPages}
+            />
+          </Group>
         )}
 
         <AddInventoryPanel
-          opened={modalOpened}
-          onClose={() => setModalOpened(false)}
+          opened={panelOpened}
+          onClose={() => setPanelOpened(false)}
           onSuccess={refetch}
         />
       </Stack>
