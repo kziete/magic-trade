@@ -1,66 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import {
-  TextInput,
-  Stack,
-  Card,
-  Text,
-  Group,
-  Loader,
-  Center,
-} from "@mantine/core";
+import { useRouter } from "next/navigation";
+import { Autocomplete, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSearchCardsQuery } from "@/lib/api";
 
 export default function CardSearch() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
 
-  const {
-    data: cards,
-    isLoading,
-    isFetching,
-  } = useSearchCardsQuery(debouncedSearch, {
+  const { data: cards, isFetching } = useSearchCardsQuery(debouncedSearch, {
     skip: debouncedSearch.length < 2,
   });
 
+  const options =
+    cards?.map((card) => ({
+      value: `${card.id}`,
+      label: card.name,
+    })) ?? [];
+
+  const handleSelect = (value: string) => {
+    const card = cards?.find((c) => c.id.toString() === value);
+    if (card) {
+      router.push(`/cards/${card.id}`);
+    }
+  };
+
   return (
-    <Stack gap="lg">
-      <TextInput
-        placeholder="Buscar cartas..."
-        size="lg"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        rightSection={isFetching ? <Loader size="xs" /> : null}
-      />
-
-      {isLoading && debouncedSearch.length >= 2 && (
-        <Center>
-          <Loader />
-        </Center>
-      )}
-
-      {cards && cards.length > 0 && (
-        <Stack gap="xs">
-          {cards.map((card) => (
-            <Card key={card.id} shadow="sm" padding="md" radius="md" withBorder>
-              <Group justify="space-between">
-                <Text fw={500}>{card.name}</Text>
-                <Text size="sm" c="dimmed">
-                  #{card.id}
-                </Text>
-              </Group>
-            </Card>
-          ))}
-        </Stack>
-      )}
-
-      {cards && cards.length === 0 && debouncedSearch.length >= 2 && (
-        <Text ta="center" c="dimmed">
-          No se encontraron cartas
-        </Text>
-      )}
-    </Stack>
+    <Autocomplete
+      placeholder="Buscar cartas..."
+      size="lg"
+      value={search}
+      onChange={setSearch}
+      onOptionSubmit={handleSelect}
+      data={options}
+      rightSection={isFetching ? <Loader size="xs" /> : null}
+    />
   );
 }

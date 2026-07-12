@@ -7,6 +7,16 @@ export interface Card {
   variants_url: string;
 }
 
+export interface Available {
+  id: number;
+  variant_id: number;
+  card_name: string;
+  set_name: string;
+  image: string;
+  finish: string;
+  condition: string;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:9000/api/" }),
@@ -14,7 +24,10 @@ export const cardsApi = createApi({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
     }),
+    getAvailable: builder.query<Available[], number>({
+      query: (cardId) => `cards/${cardId}/available/`,
+    }),
   }),
 });
 
-export const { useSearchCardsQuery } = cardsApi;
+export const { useSearchCardsQuery, useGetAvailableQuery } = cardsApi;
