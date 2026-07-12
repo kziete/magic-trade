@@ -30,6 +30,7 @@ class VariantListView(ListAPIView):
 
 class AvailableListView(ListAPIView):
     serializer_class = AvailableSerializer
+    pagination_class = None
 
     def get_queryset(self):
         card_id = self.kwargs['card_id']
