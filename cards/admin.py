@@ -8,7 +8,12 @@ class SetAdmin(admin.ModelAdmin):
 @admin.register(models.Card)
 class CardAdmin(admin.ModelAdmin):
     search_fields = ["name"]
-    list_display = ["name", "oracle_id"]
-    raw_id_fields = ["card_set"]
+
+
+@admin.register(models.Variant)
+class VariantAdmin(admin.ModelAdmin):
+    search_fields = ["card__name"]
+    # list_display = ["name", "oracle_id"]
+    raw_id_fields = ["card", "card_set"]
 
 # Register your models here.

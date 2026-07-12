@@ -9,14 +9,25 @@ class Set(models.Model):
         return f"{self.short} - {self.name}"
 
 class Card(models.Model):
-    scryfall_id = models.CharField(max_length=36, unique=True)
     oracle_id = models.CharField(max_length=36)
     name = models.CharField()
+
+    def __str__(self) -> str:
+        return self.name
+
+class Variant(models.Model):
+    scryfall_id = models.CharField(max_length=36, unique=True)
+    card = models.ForeignKey(Card, on_delete=models.PROTECT)
+    collector_number = models.CharField()
     image = models.CharField()
     card_set = models.ForeignKey(Set, on_delete=models.PROTECT)
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.card.name} ({self.card_set.name})"
+
+    class Meta:
+        ordering = ["card__name", "card_set__name"]
+
 
 
 class Available(models.Model):
@@ -25,7 +36,3 @@ class Available(models.Model):
 
 class Wanted(models.Model):
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
-
-
-
-

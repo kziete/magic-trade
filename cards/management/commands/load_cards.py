@@ -1,6 +1,6 @@
 import json
 from django.core.management.base import BaseCommand
-from cards.models import Set, Card
+from cards.models import Set, Card, Variant
 
 
 class Command(BaseCommand):
@@ -19,11 +19,13 @@ class Command(BaseCommand):
 
         if options['clear']:
             self.stdout.write('Eliminando datos existentes...')
+            Variant.objects.all().delete()
             Card.objects.all().delete()
             Set.objects.all().delete()
 
         sets_cache = {}
-        cards_to_create = []
+        cards_cache = {}
+        variants_to_create = []
         skipped = 0
         batch_size = 1000
 
@@ -45,26 +47,35 @@ class Command(BaseCommand):
                     )
                     sets_cache[set_code] = card_set
 
-                cards_to_create.append(Card(
+                oracle_id = data['oracle_id']
+                if oracle_id not in cards_cache:
+                    card, _ = Card.objects.get_or_create(
+                        oracle_id=oracle_id,
+                        defaults={'name': data['name']}
+                    )
+                    cards_cache[oracle_id] = card
+
+                variants_to_create.append(Variant(
                     scryfall_id=data['id'],
-                    oracle_id=data['oracle_id'],
-                    name=data['name'],
+                    card=cards_cache[oracle_id],
+                    collector_number=data["collector_number"],
                     image=data['image_uris']['normal'],
                     card_set=sets_cache[set_code],
                 ))
 
-                if len(cards_to_create) >= batch_size:
-                    Card.objects.bulk_create(cards_to_create)
+                if len(variants_to_create) >= batch_size:
+                    Variant.objects.bulk_create(variants_to_create)
                     self.stdout.write(f'  Procesadas {line_num} líneas...')
-                    cards_to_create = []
+                    variants_to_create = []
 
-        if cards_to_create:
-            Card.objects.bulk_create(cards_to_create)
+        if variants_to_create:
+            Variant.objects.bulk_create(variants_to_create)
 
+        total_variants = Variant.objects.count()
         total_cards = Card.objects.count()
         total_sets = Set.objects.count()
 
         self.stdout.write(self.style.SUCCESS(
-            f'Carga completada: {total_cards} cartas, {total_sets} sets. '
+            f'Carga completada: {total_variants} variantes, {total_cards} cartas, {total_sets} sets. '
             f'Omitidas: {skipped} (sin imagen)'
         ))
