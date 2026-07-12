@@ -14,7 +14,9 @@ import {
   Center,
   Select,
   Grid,
+  Avatar,
 } from "@mantine/core";
+import { IconUser } from "@tabler/icons-react";
 import {
   useGetCardQuery,
   useGetAvailableQuery,
@@ -142,6 +144,12 @@ export default function CardAvailablePage({
                         {item.finish}
                       </Badge>
                       <Badge color="blue">{item.condition}</Badge>
+                    </Group>
+                    <Group gap="xs">
+                      <Avatar size="sm" radius="xl">
+                        <IconUser size={16} />
+                      </Avatar>
+                      <Text size="sm">kziete</Text>
                     </Group>
                   </Stack>
                 </Group>
