@@ -21,10 +21,18 @@ export default function Header() {
       px="md"
       justify="space-between"
       wrap="nowrap"
-      style={{ borderBottom: "1px solid #e9ecef" }}
+      style={{
+        borderBottom: "1px solid var(--mantine-color-dark-5)",
+        background: "var(--mantine-color-dark-8)",
+      }}
     >
       <Link href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
-        <Text fw={700} size="lg" c="dark">
+        <Text
+          fw={700}
+          size="lg"
+          variant="gradient"
+          gradient={{ from: "blue", to: "cyan", deg: 90 }}
+        >
           Magic Trade
         </Text>
       </Link>

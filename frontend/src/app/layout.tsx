@@ -3,6 +3,7 @@ import { MantineProvider, ColorSchemeScript } from "@mantine/core";
 import StoreProvider from "@/lib/StoreProvider";
 import AuthProvider from "@/lib/AuthProvider";
 import Header from "@/components/Header";
+import { theme } from "@/lib/theme";
 import "@mantine/core/styles.css";
 import "./globals.css";
 
@@ -17,13 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-mantine-color-scheme="dark" suppressHydrationWarning>
       <head>
-        <ColorSchemeScript />
+        <ColorSchemeScript defaultColorScheme="dark" />
       </head>
       <body>
         <StoreProvider>
-          <MantineProvider>
+          <MantineProvider theme={theme} defaultColorScheme="dark">
             <AuthProvider>
               <Header />
               {children}
