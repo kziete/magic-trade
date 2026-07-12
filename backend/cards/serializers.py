@@ -30,7 +30,8 @@ class AvailableSerializer(serializers.ModelSerializer):
     card_name = serializers.CharField(source='variant.card.name', read_only=True)
     set_name = serializers.CharField(source='variant.card_set.name', read_only=True)
     image = serializers.CharField(source='variant.image', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Available
-        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition']
+        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'username']

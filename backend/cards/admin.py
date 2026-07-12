@@ -19,7 +19,7 @@ class VariantAdmin(admin.ModelAdmin):
 
 @admin.register(models.Available)
 class AvailableAdmin(admin.ModelAdmin):
-    raw_id_fields = ["variant"]
+    raw_id_fields = ["variant", "user"]
 
 
 # Register your models here.

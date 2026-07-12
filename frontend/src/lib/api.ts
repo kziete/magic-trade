@@ -15,6 +15,7 @@ export interface Available {
   image: string;
   finish: string;
   condition: string;
+  username: string;
 }
 
 export interface Variant {

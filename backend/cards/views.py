@@ -44,4 +44,4 @@ class AvailableListView(ListAPIView):
         if condition:
             queryset = queryset.filter(condition=condition)
 
-        return queryset.select_related('variant__card', 'variant__card_set')
+        return queryset.select_related('user', 'variant__card', 'variant__card_set')

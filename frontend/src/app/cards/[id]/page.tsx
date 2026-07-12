@@ -149,7 +149,7 @@ export default function CardAvailablePage({
                       <Avatar size="sm" radius="xl">
                         <IconUser size={16} />
                       </Avatar>
-                      <Text size="sm">kziete</Text>
+                      <Text size="sm">{item.username}</Text>
                     </Group>
                   </Stack>
                 </Group>

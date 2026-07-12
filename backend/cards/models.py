@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
 
@@ -44,6 +45,7 @@ class Variant(models.Model):
 
 
 class Available(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
     finish = models.CharField(max_length=10, choices=Finish.choices)
     condition = models.CharField(max_length=10, choices=Condition.choices, default=Condition.NM)
@@ -53,6 +55,7 @@ class Available(models.Model):
 
 
 class Wanted(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
     finish = models.CharField(max_length=10, choices=Finish.choices)
