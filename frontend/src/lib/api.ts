@@ -17,6 +17,23 @@ export interface Available {
   condition: string;
 }
 
+export interface Variant {
+  id: number;
+  scryfall_id: string;
+  collector_number: string;
+  image: string;
+  set_name: string;
+  set_short: string;
+  finishes: string[];
+}
+
+export interface AvailableFilters {
+  cardId: number;
+  variant?: number;
+  finish?: string;
+  condition?: string;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:9000/api/" }),
@@ -24,10 +41,24 @@ export const cardsApi = createApi({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
     }),
-    getAvailable: builder.query<Available[], number>({
-      query: (cardId) => `cards/${cardId}/available/`,
+    getVariants: builder.query<Variant[], number>({
+      query: (cardId) => `cards/${cardId}/variants/`,
+    }),
+    getAvailable: builder.query<Available[], AvailableFilters>({
+      query: ({ cardId, variant, finish, condition }) => {
+        const params = new URLSearchParams();
+        if (variant) params.append("variant", variant.toString());
+        if (finish) params.append("finish", finish);
+        if (condition) params.append("condition", condition);
+        const queryString = params.toString();
+        return `cards/${cardId}/available/${queryString ? `?${queryString}` : ""}`;
+      },
     }),
   }),
 });
 
-export const { useSearchCardsQuery, useGetAvailableQuery } = cardsApi;
+export const {
+  useSearchCardsQuery,
+  useGetVariantsQuery,
+  useGetAvailableQuery,
+} = cardsApi;

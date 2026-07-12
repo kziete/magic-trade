@@ -6,9 +6,17 @@ import { Autocomplete, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSearchCardsQuery } from "@/lib/api";
 
-export default function CardSearch() {
+interface CardSearchProps {
+  initialValue?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+}
+
+export default function CardSearch({
+  initialValue = "",
+  size = "lg",
+}: CardSearchProps) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialValue);
   const [debouncedSearch] = useDebouncedValue(search, 300);
 
   const { data: cards, isFetching } = useSearchCardsQuery(debouncedSearch, {
@@ -31,7 +39,7 @@ export default function CardSearch() {
   return (
     <Autocomplete
       placeholder="Buscar cartas..."
-      size="lg"
+      size={size}
       value={search}
       onChange={setSearch}
       onOptionSubmit={handleSelect}

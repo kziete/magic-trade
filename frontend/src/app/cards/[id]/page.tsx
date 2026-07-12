@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import {
   Container,
   Title,
@@ -12,8 +12,14 @@ import {
   Badge,
   Loader,
   Center,
+  Select,
+  Grid,
 } from "@mantine/core";
-import { useGetAvailableQuery } from "@/lib/api";
+import {
+  useGetAvailableQuery,
+  useGetVariantsQuery,
+} from "@/lib/api";
+import CardSearch from "@/components/CardSearch";
 
 export default function CardAvailablePage({
   params,
@@ -23,41 +29,100 @@ export default function CardAvailablePage({
   const { id } = use(params);
   const cardId = parseInt(id, 10);
 
-  const { data: available, isLoading, error } = useGetAvailableQuery(cardId);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
+  const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
 
-  if (isLoading) {
-    return (
-      <Container size="sm" py="xl">
-        <Center>
-          <Loader size="lg" />
-        </Center>
-      </Container>
-    );
-  }
+  const { data: variants } = useGetVariantsQuery(cardId);
 
-  if (error) {
-    return (
-      <Container size="sm" py="xl">
-        <Text c="red" ta="center">
-          Error al cargar disponibles
-        </Text>
-      </Container>
-    );
-  }
+  const {
+    data: available,
+    isLoading,
+    error,
+  } = useGetAvailableQuery({
+    cardId,
+    variant: selectedVariant ? parseInt(selectedVariant, 10) : undefined,
+    finish: selectedFinish ?? undefined,
+    condition: selectedCondition ?? undefined,
+  });
 
-  const cardName = available?.[0]?.card_name ?? "Carta";
+  const cardName = available?.[0]?.card_name ?? variants?.[0]?.set_name ?? "Carta";
+
+  const variantOptions =
+    variants?.map((v) => ({
+      value: v.id.toString(),
+      label: `${v.set_name} (#${v.collector_number})`,
+    })) ?? [];
 
   return (
     <Container size="sm" py="xl">
       <Stack gap="lg">
         <Title order={1} ta="center">
-          {cardName}
+          Disponibles
         </Title>
 
-        {available && available.length > 0 ? (
+        <Stack gap="md">
+          <CardSearch initialValue={cardName} size="md" />
+
+          <Grid>
+            <Grid.Col span={4}>
+              <Select
+                placeholder="Variante"
+                data={variantOptions}
+                value={selectedVariant}
+                onChange={setSelectedVariant}
+                clearable
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <Select
+                placeholder="Finish"
+                data={[
+                  { value: "foil", label: "Foil" },
+                  { value: "nonfoil", label: "Non-Foil" },
+                ]}
+                value={selectedFinish}
+                onChange={setSelectedFinish}
+                clearable
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <Select
+                placeholder="Condition"
+                data={[
+                  { value: "M", label: "Mint" },
+                  { value: "NM", label: "Near Mint" },
+                ]}
+                value={selectedCondition}
+                onChange={setSelectedCondition}
+                clearable
+              />
+            </Grid.Col>
+          </Grid>
+        </Stack>
+
+        {isLoading && (
+          <Center>
+            <Loader size="lg" />
+          </Center>
+        )}
+
+        {error && (
+          <Text c="red" ta="center">
+            Error al cargar disponibles
+          </Text>
+        )}
+
+        {!isLoading && !error && available && available.length > 0 && (
           <Stack gap="md">
             {available.map((item) => (
-              <Card key={item.id} shadow="sm" padding="md" radius="md" withBorder>
+              <Card
+                key={item.id}
+                shadow="sm"
+                padding="md"
+                radius="md"
+                withBorder
+              >
                 <Group wrap="nowrap" align="flex-start">
                   <Image
                     src={item.image}
@@ -66,7 +131,10 @@ export default function CardAvailablePage({
                     radius="sm"
                   />
                   <Stack gap="xs" style={{ flex: 1 }}>
-                    <Text fw={500}>{item.set_name}</Text>
+                    <Text fw={500}>{item.card_name}</Text>
+                    <Text size="sm" c="dimmed">
+                      {item.set_name}
+                    </Text>
                     <Group gap="xs">
                       <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
                         {item.finish}
@@ -78,7 +146,9 @@ export default function CardAvailablePage({
               </Card>
             ))}
           </Stack>
-        ) : (
+        )}
+
+        {!isLoading && !error && available && available.length === 0 && (
           <Text ta="center" c="dimmed">
             No hay disponibles para esta carta
           </Text>
