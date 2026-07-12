@@ -58,6 +58,7 @@ export default function InventoryTable({
           <Table.Th>Set</Table.Th>
           <Table.Th>Finish</Table.Th>
           <Table.Th>Condicion</Table.Th>
+          <Table.Th>Idioma</Table.Th>
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
       </Table.Thead>
@@ -77,6 +78,9 @@ export default function InventoryTable({
             </Table.Td>
             <Table.Td>
               <Badge size="sm" color="blue">{item.condition}</Badge>
+            </Table.Td>
+            <Table.Td>
+              <Badge size="sm" color="grape">{item.language}</Badge>
             </Table.Td>
             {onDelete && (
               <Table.Td>

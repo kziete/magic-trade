@@ -35,6 +35,7 @@ export default function AddInventoryPanel({
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>("EN");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -91,6 +92,7 @@ export default function AddInventoryPanel({
     setSelectedVariant(null);
     setSelectedFinish(null);
     setSelectedCondition(null);
+    setSelectedLanguage("EN");
     setError("");
     setSuccess(false);
   };
@@ -101,7 +103,7 @@ export default function AddInventoryPanel({
   };
 
   const handleSubmit = async (keepOpen: boolean) => {
-    if (!selectedVariant || !selectedFinish || !selectedCondition) {
+    if (!selectedVariant || !selectedFinish || !selectedCondition || !selectedLanguage) {
       setError("Por favor completa todos los campos");
       return;
     }
@@ -114,6 +116,7 @@ export default function AddInventoryPanel({
         variant: parseInt(selectedVariant, 10),
         finish: selectedFinish,
         condition: selectedCondition,
+        language: selectedLanguage,
       }).unwrap();
 
       if (keepOpen) {
@@ -134,7 +137,7 @@ export default function AddInventoryPanel({
     }
   };
 
-  const isFormValid = selectedVariant && selectedFinish && selectedCondition;
+  const isFormValid = selectedVariant && selectedFinish && selectedCondition && selectedLanguage;
 
   return (
     <Drawer
@@ -185,6 +188,22 @@ export default function AddInventoryPanel({
           ]}
           value={selectedCondition}
           onChange={setSelectedCondition}
+          disabled={!selectedVariant}
+        />
+
+        <Select
+          label="Idioma"
+          placeholder="Selecciona idioma"
+          data={[
+            { value: "EN", label: "English" },
+            { value: "ES", label: "Spanish" },
+            { value: "CN", label: "Chinese" },
+            { value: "JP", label: "Japanese" },
+            { value: "ITA", label: "Italian" },
+            { value: "OTHER", label: "Other" },
+          ]}
+          value={selectedLanguage}
+          onChange={setSelectedLanguage}
           disabled={!selectedVariant}
         />
 

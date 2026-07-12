@@ -34,10 +34,10 @@ class AvailableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Available
-        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'username']
+        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username']
 
 
 class AvailableCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Available
-        fields = ['variant', 'finish', 'condition']
+        fields = ['variant', 'finish', 'condition', 'language']

@@ -146,6 +146,7 @@ export default function CardAvailablePage({
                         {item.finish}
                       </Badge>
                       <Badge color="blue">{item.condition}</Badge>
+                      <Badge color="grape">{item.language}</Badge>
                     </Group>
                     <Group gap="xs">
                       <Avatar size="sm" radius="xl">

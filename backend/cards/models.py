@@ -11,6 +11,14 @@ class Condition(models.TextChoices):
     M = "M", "Mint"
     NM = "NM", "Near Mint"
 
+class Language(models.TextChoices):
+    EN = "EN", "English"
+    ES = "ES", "Spanish"
+    CN = "CN", "Chinese"
+    JP = "JP", "Japanese"
+    ITA = "ITA", "Italian"
+    OTHER = "OTHER", "Other"
+
 
 class Set(models.Model):
     short = models.CharField()
@@ -49,6 +57,7 @@ class Available(models.Model):
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
     finish = models.CharField(max_length=10, choices=Finish.choices)
     condition = models.CharField(max_length=10, choices=Condition.choices, default=Condition.NM)
+    language = models.CharField(max_length=10, choices=Language.choices, default=Language.EN)
 
     def __str__(self) -> str:
         return str(self.variant) # TODO

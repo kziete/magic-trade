@@ -15,6 +15,7 @@ export interface Available {
   image: string;
   finish: string;
   condition: string;
+  language: string;
   username: string;
 }
 
@@ -46,6 +47,7 @@ export interface CreateAvailableRequest {
   variant: number;
   finish: string;
   condition: string;
+  language: string;
 }
 
 export const cardsApi = createApi({
