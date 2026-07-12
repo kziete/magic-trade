@@ -20,11 +20,11 @@ export const theme = createTheme({
   colors: {
     brand,
     dark: [
-      "#C9C9C9",
-      "#b8b8b8",
-      "#828282",
-      "#696969",
-      "#424242",
+      "#ffffff",
+      "#f0f0f0",
+      "#c1c1c1",
+      "#a1a1a1",
+      "#5c5c5c",
       "#3b3b3b",
       "#2e2e2e",
       "#242424",

@@ -10,6 +10,8 @@ import {
   Autocomplete,
   Loader,
   Group,
+  Image,
+  Center,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
@@ -83,7 +85,19 @@ export default function AddInventoryPanel({
 
   const handleVariantChange = (value: string | null) => {
     setSelectedVariant(value);
-    setSelectedFinish(null);
+    if (value) {
+      const variant = variants?.find((v) => v.id.toString() === value);
+      if (variant) {
+        // Auto-fill defaults
+        setSelectedFinish(variant.finishes[0] || null);
+        setSelectedCondition("NM");
+        setSelectedLanguage("EN");
+      }
+    } else {
+      setSelectedFinish(null);
+      setSelectedCondition(null);
+      setSelectedLanguage("EN");
+    }
   };
 
   const resetForm = () => {
@@ -169,6 +183,17 @@ export default function AddInventoryPanel({
           onChange={handleVariantChange}
           disabled={!selectedCardId}
         />
+
+        {selectedVariantData && (
+          <Center>
+            <Image
+              src={selectedVariantData.image}
+              alt={selectedVariantData.set_name}
+              radius="md"
+              maw={180}
+            />
+          </Center>
+        )}
 
         <Select
           label="Finish"

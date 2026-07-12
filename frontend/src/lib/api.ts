@@ -1,4 +1,52 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+
+const baseQuery = fetchBaseQuery({
+  baseUrl: "http://localhost:9000/api/",
+  prepareHeaders: (headers) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 401) {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (refreshToken) {
+      const refreshResult = await fetchBaseQuery({
+        baseUrl: "http://localhost:9000/api/auth/",
+      })(
+        {
+          url: "refresh/",
+          method: "POST",
+          body: { refresh: refreshToken },
+        },
+        api,
+        extraOptions
+      );
+
+      if (refreshResult.data) {
+        const data = refreshResult.data as { access: string };
+        localStorage.setItem("token", data.access);
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+      }
+    }
+  }
+
+  return result;
+};
 
 export interface Card {
   id: number;
@@ -52,16 +100,7 @@ export interface CreateAvailableRequest {
 
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:9000/api/",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   endpoints: (builder) => ({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,

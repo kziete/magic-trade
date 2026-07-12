@@ -40,6 +40,7 @@ export default function AuthProvider({
         })
         .catch(() => {
           localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
         })
         .finally(() => {
           setIsLoading(false);
@@ -60,6 +61,7 @@ export default function AuthProvider({
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     setUser(null);
   };
 

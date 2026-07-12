@@ -29,6 +29,7 @@ export default function LoginPage() {
 
     try {
       const result = await loginMutation({ username, password }).unwrap();
+      localStorage.setItem("refreshToken", result.refresh);
       login(result.access);
       router.push("/");
     } catch {

@@ -91,10 +91,7 @@ export default function InventoryGrid({
             <Image
               src={item.image}
               alt={item.card_name}
-              radius="md"
-              style={{
-                border: "2px solid #fff",
-              }}
+              radius="lg"
             />
           </Card.Section>
 
