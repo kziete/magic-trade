@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { MantineProvider, ColorSchemeScript } from "@mantine/core";
 import StoreProvider from "@/lib/StoreProvider";
+import AuthProvider from "@/lib/AuthProvider";
+import Header from "@/components/Header";
 import "@mantine/core/styles.css";
 import "./globals.css";
 
@@ -21,7 +23,12 @@ export default function RootLayout({
       </head>
       <body>
         <StoreProvider>
-          <MantineProvider>{children}</MantineProvider>
+          <MantineProvider>
+            <AuthProvider>
+              <Header />
+              {children}
+            </AuthProvider>
+          </MantineProvider>
         </StoreProvider>
       </body>
     </html>

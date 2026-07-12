@@ -37,7 +37,16 @@ export interface AvailableFilters {
 
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:9000/api/" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:9000/api/",
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
   endpoints: (builder) => ({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
@@ -58,6 +67,9 @@ export const cardsApi = createApi({
         return `cards/${cardId}/available/${queryString ? `?${queryString}` : ""}`;
       },
     }),
+    getInventory: builder.query<Available[], void>({
+      query: () => "inventory/",
+    }),
   }),
 });
 
@@ -66,4 +78,5 @@ export const {
   useGetCardQuery,
   useGetVariantsQuery,
   useGetAvailableQuery,
+  useGetInventoryQuery,
 } = cardsApi;

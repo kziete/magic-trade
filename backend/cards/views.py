@@ -1,4 +1,5 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from .models import Card, Variant, Available
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer
 
@@ -45,3 +46,13 @@ class AvailableListView(ListAPIView):
             queryset = queryset.filter(condition=condition)
 
         return queryset.select_related('user', 'variant__card', 'variant__card_set')
+
+
+class InventoryListView(ListAPIView):
+    serializer_class = AvailableSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Available.objects.filter(user=self.request.user).select_related(
+            'user', 'variant__card', 'variant__card_set'
+        )

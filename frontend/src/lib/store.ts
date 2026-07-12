@@ -1,13 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { cardsApi } from "./api";
+import { authApi } from "./authApi";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       [cardsApi.reducerPath]: cardsApi.reducer,
+      [authApi.reducerPath]: authApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(cardsApi.middleware),
+      getDefaultMiddleware().concat(cardsApi.middleware, authApi.middleware),
   });
 };
 
