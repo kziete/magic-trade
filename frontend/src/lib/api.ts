@@ -35,6 +35,13 @@ export interface AvailableFilters {
   condition?: string;
 }
 
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: fetchBaseQuery({
@@ -67,8 +74,8 @@ export const cardsApi = createApi({
         return `cards/${cardId}/available/${queryString ? `?${queryString}` : ""}`;
       },
     }),
-    getInventory: builder.query<Available[], void>({
-      query: () => "inventory/",
+    getInventory: builder.query<PaginatedResponse<Available>, number>({
+      query: (page = 1) => `inventory/?page=${page}`,
     }),
   }),
 });

@@ -1,32 +1,40 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Container,
   Title,
   Stack,
-  Card,
-  Group,
-  Text,
-  Image,
+  Table,
   Badge,
   Loader,
   Center,
+  Text,
+  Pagination,
+  Group,
 } from "@mantine/core";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery } from "@/lib/api";
 
 export default function InventoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
+
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
   const {
-    data: inventory,
+    data: inventoryData,
     isLoading,
     error,
-  } = useGetInventoryQuery(undefined, {
+  } = useGetInventoryQuery(page, {
     skip: !user,
   });
+
+  const totalPages = inventoryData
+    ? Math.ceil(inventoryData.count / 20)
+    : 1;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -34,9 +42,13 @@ export default function InventoryPage() {
     }
   }, [authLoading, user, router]);
 
+  const handlePageChange = (newPage: number) => {
+    router.push(`/inventory?page=${newPage}`);
+  };
+
   if (authLoading || !user) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="md" py="xl">
         <Center>
           <Loader size="lg" />
         </Center>
@@ -45,7 +57,7 @@ export default function InventoryPage() {
   }
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="md" py="xl">
       <Stack gap="lg">
         <Title order={1} ta="center">
           Mi Inventario
@@ -63,42 +75,50 @@ export default function InventoryPage() {
           </Text>
         )}
 
-        {!isLoading && !error && inventory && inventory.length > 0 && (
-          <Stack gap="md">
-            {inventory.map((item) => (
-              <Card
-                key={item.id}
-                shadow="sm"
-                padding="md"
-                radius="md"
-                withBorder
-              >
-                <Group wrap="nowrap" align="flex-start">
-                  <Image
-                    src={item.image}
-                    alt={item.card_name}
-                    w={100}
-                    radius="sm"
-                  />
-                  <Stack gap="xs" style={{ flex: 1 }}>
-                    <Text fw={500}>{item.card_name}</Text>
-                    <Text size="sm" c="dimmed">
-                      {item.set_name}
-                    </Text>
-                    <Group gap="xs">
-                      <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
+        {!isLoading && !error && inventoryData && inventoryData.results.length > 0 && (
+          <>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Carta</Table.Th>
+                  <Table.Th>Set</Table.Th>
+                  <Table.Th>Finish</Table.Th>
+                  <Table.Th>Condición</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {inventoryData.results.map((item) => (
+                  <Table.Tr key={item.id}>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>{item.card_name}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed">{item.set_name}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge size="sm" color={item.finish === "foil" ? "yellow" : "gray"}>
                         {item.finish}
                       </Badge>
-                      <Badge color="blue">{item.condition}</Badge>
-                    </Group>
-                  </Stack>
-                </Group>
-              </Card>
-            ))}
-          </Stack>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge size="sm" color="blue">{item.condition}</Badge>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+
+            <Group justify="center">
+              <Pagination
+                value={page}
+                onChange={handlePageChange}
+                total={totalPages}
+              />
+            </Group>
+          </>
         )}
 
-        {!isLoading && !error && inventory && inventory.length === 0 && (
+        {!isLoading && !error && inventoryData && inventoryData.results.length === 0 && (
           <Text ta="center" c="dimmed">
             No tienes cartas en tu inventario
           </Text>
