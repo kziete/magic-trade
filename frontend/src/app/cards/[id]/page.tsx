@@ -16,6 +16,7 @@ import {
   Grid,
 } from "@mantine/core";
 import {
+  useGetCardQuery,
   useGetAvailableQuery,
   useGetVariantsQuery,
 } from "@/lib/api";
@@ -33,6 +34,7 @@ export default function CardAvailablePage({
   const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
 
+  const { data: card } = useGetCardQuery(cardId);
   const { data: variants } = useGetVariantsQuery(cardId);
 
   const {
@@ -46,7 +48,7 @@ export default function CardAvailablePage({
     condition: selectedCondition ?? undefined,
   });
 
-  const cardName = available?.[0]?.card_name ?? variants?.[0]?.set_name ?? "Carta";
+  const cardName = card?.name ?? "";
 
   const variantOptions =
     variants?.map((v) => ({

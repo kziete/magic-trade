@@ -41,6 +41,9 @@ export const cardsApi = createApi({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
     }),
+    getCard: builder.query<Card, number>({
+      query: (cardId) => `cards/${cardId}/`,
+    }),
     getVariants: builder.query<Variant[], number>({
       query: (cardId) => `cards/${cardId}/variants/`,
     }),
@@ -59,6 +62,7 @@ export const cardsApi = createApi({
 
 export const {
   useSearchCardsQuery,
+  useGetCardQuery,
   useGetVariantsQuery,
   useGetAvailableQuery,
 } = cardsApi;

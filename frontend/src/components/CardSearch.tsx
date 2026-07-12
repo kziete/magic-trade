@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Autocomplete, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -18,6 +18,12 @@ export default function CardSearch({
   const router = useRouter();
   const [search, setSearch] = useState(initialValue);
   const [debouncedSearch] = useDebouncedValue(search, 300);
+
+  useEffect(() => {
+    if (initialValue) {
+      setSearch(initialValue);
+    }
+  }, [initialValue]);
 
   const { data: cards, isFetching } = useSearchCardsQuery(debouncedSearch, {
     skip: debouncedSearch.length < 2,

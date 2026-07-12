@@ -1,4 +1,4 @@
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from .models import Card, Variant, Available
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer
 
@@ -9,6 +9,12 @@ class CardListView(ListAPIView):
     def get_queryset(self):
         query = self.request.query_params.get('query', '')
         return Card.objects.filter(name__icontains=query)[:10]
+
+
+class CardDetailView(RetrieveAPIView):
+    serializer_class = CardSerializer
+    queryset = Card.objects.all()
+    lookup_field = 'pk'
 
 
 class VariantListView(ListAPIView):
