@@ -210,6 +210,9 @@ export default function AddInventoryPanel({
           data={[
             { value: "M", label: "Mint" },
             { value: "NM", label: "Near Mint" },
+            { value: "LP", label: "Lightly Played" },
+            { value: "MP", label: "Moderately Played" },
+            { value: "HP", label: "Heavily Played" },
           ]}
           value={selectedCondition}
           onChange={setSelectedCondition}

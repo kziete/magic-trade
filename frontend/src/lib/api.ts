@@ -98,6 +98,12 @@ export interface CreateAvailableRequest {
   language: string;
 }
 
+export interface ImportInventoryResult {
+  created: number;
+  skipped: number;
+  errors: string[];
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
@@ -140,6 +146,19 @@ export const cardsApi = createApi({
     getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number }>({
       query: ({ username, page }) => `users/${username}/inventory/?page=${page}`,
     }),
+    importInventory: builder.mutation<ImportInventoryResult, { file: File; format: string; clear: boolean }>({
+      query: ({ file, format, clear }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("format", format);
+        formData.append("clear", clear.toString());
+        return {
+          url: "inventory/import/",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -152,4 +171,5 @@ export const {
   useAddToInventoryMutation,
   useDeleteFromInventoryMutation,
   useGetUserInventoryQuery,
+  useImportInventoryMutation,
 } = cardsApi;

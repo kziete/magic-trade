@@ -1,7 +1,13 @@
+import io
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
 from .models import Card, Variant, Available
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer
+from .services import load_inventory, LOADERS
 
 
 class CardListView(ListAPIView):
@@ -87,3 +93,38 @@ class UserInventoryListView(ListAPIView):
         return Available.objects.filter(user__username=username).select_related(
             'user', 'variant__card', 'variant__card_set'
         ).order_by('-id')
+
+
+class InventoryImportView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        format_type = request.data.get('format', 'moxfield')
+        if format_type not in LOADERS:
+            return Response(
+                {'error': f'Unknown format: {format_type}. Available: {", ".join(LOADERS.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        clear = request.data.get('clear', '').lower() == 'true'
+        if clear:
+            Available.objects.filter(user=request.user).delete()
+
+        content = file.read().decode('utf-8')
+        text_file = io.StringIO(content)
+
+        result = load_inventory(text_file, request.user, format_type)
+
+        return Response({
+            'created': result.created,
+            'skipped': result.skipped,
+            'errors': result.errors[:50],
+        })

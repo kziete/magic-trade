@@ -12,10 +12,11 @@ import {
   Group,
   Button,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconUpload } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
+import ImportInventoryPanel from "@/components/ImportInventoryPanel";
 import InventoryTable from "@/components/InventoryTable";
 import InventoryGrid from "@/components/InventoryGrid";
 import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle";
@@ -27,6 +28,7 @@ export default function InventoryPage() {
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const [panelOpened, setPanelOpened] = useState(false);
+  const [importPanelOpened, setImportPanelOpened] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -93,6 +95,9 @@ export default function InventoryPage() {
           <Title order={1}>Mi Inventario</Title>
           <Group gap="sm">
             <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
+            <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportPanelOpened(true)}>
+              Importar
+            </Button>
             <Button leftSection={<IconPlus size={16} />} onClick={() => setPanelOpened(true)}>
               Agregar
             </Button>
@@ -130,6 +135,12 @@ export default function InventoryPage() {
         <AddInventoryPanel
           opened={panelOpened}
           onClose={() => setPanelOpened(false)}
+          onSuccess={refetch}
+        />
+
+        <ImportInventoryPanel
+          opened={importPanelOpened}
+          onClose={() => setImportPanelOpened(false)}
           onSuccess={refetch}
         />
       </Stack>
