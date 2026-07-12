@@ -1,6 +1,6 @@
 import json
 from django.core.management.base import BaseCommand
-from cards.models import Set, Card, Variant
+from cards.models import Set, Card, Variant, Finish
 
 
 class Command(BaseCommand):
@@ -55,12 +55,16 @@ class Command(BaseCommand):
                     )
                     cards_cache[oracle_id] = card
 
+                valid_finishes = {f.value for f in Finish}
+                finishes = [f for f in data.get('finishes', []) if f in valid_finishes]
+
                 variants_to_create.append(Variant(
                     scryfall_id=data['id'],
                     card=cards_cache[oracle_id],
                     collector_number=data["collector_number"],
                     image=data['image_uris']['normal'],
                     card_set=sets_cache[set_code],
+                    finishes=finishes,
                 ))
 
                 if len(variants_to_create) >= batch_size:

@@ -1,4 +1,14 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
+
+
+class Finish(models.TextChoices):
+    FOIL = "foil", "Foil"
+    NONFOIL = "nonfoil", "Non-Foil"
+
+class Condition(models.TextChoices):
+    M = "M", "Mint"
+    NM = "NM", "Near Mint"
 
 
 class Set(models.Model):
@@ -21,18 +31,28 @@ class Variant(models.Model):
     collector_number = models.CharField()
     image = models.CharField()
     card_set = models.ForeignKey(Set, on_delete=models.PROTECT)
+    finishes = ArrayField(
+        models.CharField(max_length=10, choices=Finish.choices),
+        default=list,
+    )
 
     def __str__(self) -> str:
-        return f"{self.card.name} ({self.card_set.name})"
+        return f"{self.card.name} ({self.card_set.name} - {self.collector_number})"
 
     class Meta:
         ordering = ["card__name", "card_set__name"]
 
 
-
 class Available(models.Model):
-    card = models.ForeignKey(Card, on_delete=models.PROTECT)
+    variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
+    finish = models.CharField(max_length=10, choices=Finish.choices)
+    condition = models.CharField(max_length=10, choices=Condition.choices, default=Condition.NM)
+
+    def __str__(self) -> str:
+        return str(self.variant) # TODO
 
 
 class Wanted(models.Model):
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
+    variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
+    finish = models.CharField(max_length=10, choices=Finish.choices)
