@@ -7,6 +7,7 @@ from .serializers import CardSerializer, VariantSerializer, AvailableSerializer,
 class CardListView(ListAPIView):
     serializer_class = CardSerializer
     pagination_class = None
+    authentication_classes = []
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '')
@@ -22,6 +23,7 @@ class CardDetailView(RetrieveAPIView):
 class VariantListView(ListAPIView):
     serializer_class = VariantSerializer
     pagination_class = None
+    authentication_classes = []
 
     def get_queryset(self):
         card_id = self.kwargs['card_id']
@@ -31,6 +33,7 @@ class VariantListView(ListAPIView):
 class AvailableListView(ListAPIView):
     serializer_class = AvailableSerializer
     pagination_class = None
+    authentication_classes = []
 
     def get_queryset(self):
         card_id = self.kwargs['card_id']
