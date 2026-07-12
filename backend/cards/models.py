@@ -10,6 +10,9 @@ class Finish(models.TextChoices):
 class Condition(models.TextChoices):
     M = "M", "Mint"
     NM = "NM", "Near Mint"
+    LP = "LP", "Lightly Played"
+    MP = "MP", "Moderately Played"
+    HP = "HP", "Heavily Played"
 
 class Language(models.TextChoices):
     EN = "EN", "English"
@@ -58,6 +61,7 @@ class Available(models.Model):
     finish = models.CharField(max_length=10, choices=Finish.choices)
     condition = models.CharField(max_length=10, choices=Condition.choices, default=Condition.NM)
     language = models.CharField(max_length=10, choices=Language.choices, default=Language.EN)
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self) -> str:
         return str(self.variant) # TODO
