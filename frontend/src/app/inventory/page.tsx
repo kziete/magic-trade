@@ -17,14 +17,32 @@ import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
 import InventoryTable from "@/components/InventoryTable";
+import InventoryGrid from "@/components/InventoryGrid";
+import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle";
+
+const VIEW_MODE_KEY = "inventory-view-mode";
 
 export default function InventoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const [panelOpened, setPanelOpened] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const page = parseInt(searchParams.get("page") || "1", 10);
+
+  // Load view mode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem(VIEW_MODE_KEY) as ViewMode | null;
+    if (savedMode === "table" || savedMode === "grid") {
+      setViewMode(savedMode);
+    }
+  }, []);
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
+  };
 
   const {
     data: inventoryData,
@@ -60,7 +78,7 @@ export default function InventoryPage() {
 
   if (authLoading || !user) {
     return (
-      <Container size="md" py="xl">
+      <Container size="lg" py="xl">
         <Center>
           <Loader size="lg" />
         </Center>
@@ -69,22 +87,35 @@ export default function InventoryPage() {
   }
 
   return (
-    <Container size="md" py="xl">
+    <Container size="lg" py="xl">
       <Stack gap="lg">
         <Group justify="space-between" align="center">
           <Title order={1}>Mi Inventario</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => setPanelOpened(true)}>
-            Agregar
-          </Button>
+          <Group gap="sm">
+            <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
+            <Button leftSection={<IconPlus size={16} />} onClick={() => setPanelOpened(true)}>
+              Agregar
+            </Button>
+          </Group>
         </Group>
 
-        <InventoryTable
-          items={inventoryData?.results ?? []}
-          isLoading={isLoading}
-          error={!!error}
-          emptyMessage="No tienes cartas en tu inventario"
-          onDelete={handleDelete}
-        />
+        {viewMode === "table" ? (
+          <InventoryTable
+            items={inventoryData?.results ?? []}
+            isLoading={isLoading}
+            error={!!error}
+            emptyMessage="No tienes cartas en tu inventario"
+            onDelete={handleDelete}
+          />
+        ) : (
+          <InventoryGrid
+            items={inventoryData?.results ?? []}
+            isLoading={isLoading}
+            error={!!error}
+            emptyMessage="No tienes cartas en tu inventario"
+            onDelete={handleDelete}
+          />
+        )}
 
         {!isLoading && !error && inventoryData && inventoryData.results.length > 0 && (
           <Group justify="center">
