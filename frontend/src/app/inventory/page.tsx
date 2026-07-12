@@ -14,10 +14,11 @@ import {
   Pagination,
   Group,
   Button,
+  ActionIcon,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
-import { useGetInventoryQuery } from "@/lib/api";
+import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
 
 export default function InventoryPage() {
@@ -36,6 +37,15 @@ export default function InventoryPage() {
   } = useGetInventoryQuery(page, {
     skip: !user,
   });
+
+  const [deleteFromInventory] = useDeleteFromInventoryMutation();
+
+  const handleDelete = async (id: number, cardName: string) => {
+    if (confirm(`¿Eliminar "${cardName}" del inventario?`)) {
+      await deleteFromInventory(id);
+      refetch();
+    }
+  };
 
   const totalPages = inventoryData
     ? Math.ceil(inventoryData.count / 20)
@@ -92,6 +102,7 @@ export default function InventoryPage() {
                   <Table.Th>Set</Table.Th>
                   <Table.Th>Finish</Table.Th>
                   <Table.Th>Condición</Table.Th>
+                  <Table.Th></Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -110,6 +121,15 @@ export default function InventoryPage() {
                     </Table.Td>
                     <Table.Td>
                       <Badge size="sm" color="blue">{item.condition}</Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={() => handleDelete(item.id, item.card_name)}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
                     </Table.Td>
                   </Table.Tr>
                 ))}

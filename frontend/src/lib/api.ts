@@ -90,6 +90,12 @@ export const cardsApi = createApi({
         body,
       }),
     }),
+    deleteFromInventory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `inventory/${id}/`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -100,4 +106,5 @@ export const {
   useGetAvailableQuery,
   useGetInventoryQuery,
   useAddToInventoryMutation,
+  useDeleteFromInventoryMutation,
 } = cardsApi;

@@ -1,4 +1,4 @@
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from .models import Card, Variant, Available
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer
@@ -66,3 +66,11 @@ class InventoryListView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class InventoryDetailView(RetrieveDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AvailableSerializer
+
+    def get_queryset(self):
+        return Available.objects.filter(user=self.request.user)
