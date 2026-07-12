@@ -1,10 +1,10 @@
 services:
   web:
-    build: .
+    build: ./backend
     ports:
       - "9000:8000"
     volumes:
-      - .:/app
+      - ./backend:/app
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
       - db
@@ -20,12 +20,12 @@ services:
 
   jupyter:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile.jupyter
     ports:
       - "8888:8888"
     volumes:
-      - .:/app
+      - ./backend:/app
       - jupyter_data:/root/.jupyter
     depends_on:
       - db
