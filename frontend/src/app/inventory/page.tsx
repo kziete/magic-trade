@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
   Container,
   Title,
@@ -19,11 +18,13 @@ import {
 import { IconPlus } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery } from "@/lib/api";
+import AddInventoryModal from "@/components/AddInventoryModal";
 
 export default function InventoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
+  const [modalOpened, setModalOpened] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -31,6 +32,7 @@ export default function InventoryPage() {
     data: inventoryData,
     isLoading,
     error,
+    refetch,
   } = useGetInventoryQuery(page, {
     skip: !user,
   });
@@ -49,6 +51,11 @@ export default function InventoryPage() {
     router.push(`/inventory?page=${newPage}`);
   };
 
+  const handleModalSuccess = () => {
+    setModalOpened(false);
+    refetch();
+  };
+
   if (authLoading || !user) {
     return (
       <Container size="md" py="xl">
@@ -64,9 +71,9 @@ export default function InventoryPage() {
       <Stack gap="lg">
         <Group justify="space-between" align="center">
           <Title order={1}>Mi Inventario</Title>
-          <Link href="/inventory/add">
-            <Button leftSection={<IconPlus size={16} />}>Agregar</Button>
-          </Link>
+          <Button leftSection={<IconPlus size={16} />} onClick={() => setModalOpened(true)}>
+            Agregar
+          </Button>
         </Group>
 
         {isLoading && (
@@ -129,6 +136,12 @@ export default function InventoryPage() {
             No tienes cartas en tu inventario
           </Text>
         )}
+
+        <AddInventoryModal
+          opened={modalOpened}
+          onClose={() => setModalOpened(false)}
+          onSuccess={handleModalSuccess}
+        />
       </Stack>
     </Container>
   );
