@@ -18,7 +18,7 @@ import {
 import { IconPlus } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery } from "@/lib/api";
-import AddInventoryModal from "@/components/AddInventoryModal";
+import AddInventoryPanel from "@/components/AddInventoryPanel";
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -49,11 +49,6 @@ export default function InventoryPage() {
 
   const handlePageChange = (newPage: number) => {
     router.push(`/inventory?page=${newPage}`);
-  };
-
-  const handleModalSuccess = () => {
-    setModalOpened(false);
-    refetch();
   };
 
   if (authLoading || !user) {
@@ -137,10 +132,10 @@ export default function InventoryPage() {
           </Text>
         )}
 
-        <AddInventoryModal
+        <AddInventoryPanel
           opened={modalOpened}
           onClose={() => setModalOpened(false)}
-          onSuccess={handleModalSuccess}
+          onSuccess={refetch}
         />
       </Stack>
     </Container>

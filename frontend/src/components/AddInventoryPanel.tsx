@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import {
-  Modal,
+  Drawer,
   Stack,
   Select,
   Button,
   Alert,
   Autocomplete,
   Loader,
+  Group,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
@@ -17,17 +18,17 @@ import {
   useAddToInventoryMutation,
 } from "@/lib/api";
 
-interface AddInventoryModalProps {
+interface AddInventoryPanelProps {
   opened: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function AddInventoryModal({
+export default function AddInventoryPanel({
   opened,
   onClose,
   onSuccess,
-}: AddInventoryModalProps) {
+}: AddInventoryPanelProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
@@ -35,6 +36,7 @@ export default function AddInventoryModal({
   const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const { data: cards, isFetching: searchFetching } = useSearchCardsQuery(
     debouncedSearch,
@@ -90,6 +92,7 @@ export default function AddInventoryModal({
     setSelectedFinish(null);
     setSelectedCondition(null);
     setError("");
+    setSuccess(false);
   };
 
   const handleClose = () => {
@@ -97,13 +100,14 @@ export default function AddInventoryModal({
     onClose();
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (keepOpen: boolean) => {
     if (!selectedVariant || !selectedFinish || !selectedCondition) {
       setError("Por favor completa todos los campos");
       return;
     }
 
     setError("");
+    setSuccess(false);
 
     try {
       await addToInventory({
@@ -112,17 +116,37 @@ export default function AddInventoryModal({
         condition: selectedCondition,
       }).unwrap();
 
-      resetForm();
-      onSuccess();
+      if (keepOpen) {
+        setSuccess(true);
+        setSearch("");
+        setSelectedCardId(null);
+        setSelectedVariant(null);
+        setSelectedFinish(null);
+        setSelectedCondition(null);
+        onSuccess();
+      } else {
+        resetForm();
+        onSuccess();
+        onClose();
+      }
     } catch {
       setError("Error al agregar la carta");
     }
   };
 
+  const isFormValid = selectedVariant && selectedFinish && selectedCondition;
+
   return (
-    <Modal opened={opened} onClose={handleClose} title="Agregar al Inventario" size="md">
+    <Drawer
+      opened={opened}
+      onClose={handleClose}
+      title="Agregar al Inventario"
+      position="right"
+      size="sm"
+    >
       <Stack gap="md">
         {error && <Alert color="red">{error}</Alert>}
+        {success && <Alert color="green">Carta agregada exitosamente</Alert>}
 
         <Autocomplete
           label="Carta"
@@ -164,15 +188,24 @@ export default function AddInventoryModal({
           disabled={!selectedVariant}
         />
 
-        <Button
-          onClick={handleSubmit}
-          loading={isAdding}
-          disabled={!selectedVariant || !selectedFinish || !selectedCondition}
-          fullWidth
-        >
-          Agregar
-        </Button>
+        <Group grow>
+          <Button
+            variant="light"
+            onClick={() => handleSubmit(true)}
+            loading={isAdding}
+            disabled={!isFormValid}
+          >
+            Guardar y agregar otra
+          </Button>
+          <Button
+            onClick={() => handleSubmit(false)}
+            loading={isAdding}
+            disabled={!isFormValid}
+          >
+            Agregar
+          </Button>
+        </Group>
       </Stack>
-    </Modal>
+    </Drawer>
   );
 }
