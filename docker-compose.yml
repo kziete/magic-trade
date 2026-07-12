@@ -32,6 +32,16 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
   jupyter_data:
