@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Container,
   Title,
@@ -13,7 +14,9 @@ import {
   Text,
   Pagination,
   Group,
+  Button,
 } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery } from "@/lib/api";
 
@@ -59,9 +62,12 @@ export default function InventoryPage() {
   return (
     <Container size="md" py="xl">
       <Stack gap="lg">
-        <Title order={1} ta="center">
-          Mi Inventario
-        </Title>
+        <Group justify="space-between" align="center">
+          <Title order={1}>Mi Inventario</Title>
+          <Link href="/inventory/add">
+            <Button leftSection={<IconPlus size={16} />}>Agregar</Button>
+          </Link>
+        </Group>
 
         {isLoading && (
           <Center>

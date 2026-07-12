@@ -1,11 +1,12 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from .models import Card, Variant, Available
-from .serializers import CardSerializer, VariantSerializer, AvailableSerializer
+from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer
 
 
 class CardListView(ListAPIView):
     serializer_class = CardSerializer
+    pagination_class = None
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '')
@@ -20,6 +21,7 @@ class CardDetailView(RetrieveAPIView):
 
 class VariantListView(ListAPIView):
     serializer_class = VariantSerializer
+    pagination_class = None
 
     def get_queryset(self):
         card_id = self.kwargs['card_id']
@@ -48,11 +50,18 @@ class AvailableListView(ListAPIView):
         return queryset.select_related('user', 'variant__card', 'variant__card_set')
 
 
-class InventoryListView(ListAPIView):
-    serializer_class = AvailableSerializer
+class InventoryListView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AvailableCreateSerializer
+        return AvailableSerializer
 
     def get_queryset(self):
         return Available.objects.filter(user=self.request.user).select_related(
             'user', 'variant__card', 'variant__card_set'
         )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

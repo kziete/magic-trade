@@ -42,6 +42,12 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface CreateAvailableRequest {
+  variant: number;
+  finish: string;
+  condition: string;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: fetchBaseQuery({
@@ -77,6 +83,13 @@ export const cardsApi = createApi({
     getInventory: builder.query<PaginatedResponse<Available>, number>({
       query: (page = 1) => `inventory/?page=${page}`,
     }),
+    addToInventory: builder.mutation<Available, CreateAvailableRequest>({
+      query: (body) => ({
+        url: "inventory/",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -86,4 +99,5 @@ export const {
   useGetVariantsQuery,
   useGetAvailableQuery,
   useGetInventoryQuery,
+  useAddToInventoryMutation,
 } = cardsApi;
