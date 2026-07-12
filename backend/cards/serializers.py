@@ -3,9 +3,17 @@ from .models import Card, Variant
 
 
 class CardSerializer(serializers.ModelSerializer):
+    variants_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Card
-        fields = ['id', 'oracle_id', 'name']
+        fields = ['id', 'oracle_id', 'name', 'variants_url']
+
+    def get_variants_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/api/cards/{obj.id}/variants/')
+        return f'/api/cards/{obj.id}/variants/'
 
 
 class VariantSerializer(serializers.ModelSerializer):
