@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Card, Variant
+from .models import Card, Variant, Available
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -23,3 +23,14 @@ class VariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variant
         fields = ['id', 'scryfall_id', 'collector_number', 'image', 'set_name', 'set_short', 'finishes']
+
+
+class AvailableSerializer(serializers.ModelSerializer):
+    variant_id = serializers.IntegerField(source='variant.id', read_only=True)
+    card_name = serializers.CharField(source='variant.card.name', read_only=True)
+    set_name = serializers.CharField(source='variant.card_set.name', read_only=True)
+    image = serializers.CharField(source='variant.image', read_only=True)
+
+    class Meta:
+        model = Available
+        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition']

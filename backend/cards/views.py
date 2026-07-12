@@ -1,6 +1,6 @@
 from rest_framework.generics import ListAPIView
-from .models import Card, Variant
-from .serializers import CardSerializer, VariantSerializer
+from .models import Card, Variant, Available
+from .serializers import CardSerializer, VariantSerializer, AvailableSerializer
 
 
 class CardListView(ListAPIView):
@@ -17,3 +17,25 @@ class VariantListView(ListAPIView):
     def get_queryset(self):
         card_id = self.kwargs['card_id']
         return Variant.objects.filter(card_id=card_id)
+
+
+class AvailableListView(ListAPIView):
+    serializer_class = AvailableSerializer
+
+    def get_queryset(self):
+        card_id = self.kwargs['card_id']
+        queryset = Available.objects.filter(variant__card_id=card_id)
+
+        variant = self.request.query_params.get('variant')
+        if variant:
+            queryset = queryset.filter(variant_id=variant)
+
+        finish = self.request.query_params.get('finish')
+        if finish:
+            queryset = queryset.filter(finish=finish)
+
+        condition = self.request.query_params.get('condition')
+        if condition:
+            queryset = queryset.filter(condition=condition)
+
+        return queryset.select_related('variant__card', 'variant__card_set')
