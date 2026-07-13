@@ -42,6 +42,7 @@ class Variant(models.Model):
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
     collector_number = models.CharField()
     image = models.CharField()
+    back_image = models.CharField(null=True, blank=True)
     card_set = models.ForeignKey(Set, on_delete=models.PROTECT)
     finishes = ArrayField(
         models.CharField(max_length=10, choices=Finish.choices),

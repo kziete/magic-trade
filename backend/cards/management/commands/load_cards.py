@@ -1,6 +1,6 @@
 import json
 from django.core.management.base import BaseCommand
-from cards.models import Set, Card, Variant, Finish
+from cards.models import Set, Card, Variant, Finish, Available, Wanted
 
 
 class Command(BaseCommand):
@@ -19,6 +19,8 @@ class Command(BaseCommand):
 
         if options['clear']:
             self.stdout.write('Eliminando datos existentes...')
+            Available.objects.all().delete()
+            Wanted.objects.all().delete()
             Variant.objects.all().delete()
             Card.objects.all().delete()
             Set.objects.all().delete()
@@ -35,37 +37,62 @@ class Command(BaseCommand):
             for line_num, line in enumerate(f, 1):
                 data = json.loads(line)
 
-                if 'image_uris' not in data:
+                # Extraer imágenes: image_uris o card_faces
+                image = None
+                back_image = None
+                oracle_id = data.get("oracle_id")
+                if data.get("object") != "card":
                     skipped += 1
                     continue
 
-                set_code = data['set']
-                if set_code not in sets_cache:
-                    card_set, _ = Set.objects.get_or_create(
-                        short=set_code,
-                        defaults={'name': data['set_name']}
-                    )
-                    sets_cache[set_code] = card_set
+                try:
+                    if 'image_uris' in data:
+                        image = data['image_uris'].get('normal')
+                    elif 'card_faces' in data and len(data['card_faces']) >= 2:
+                        front_face = data['card_faces'][0]
+                        back_face = data['card_faces'][1]
+                        if 'image_uris' in front_face:
+                            image = front_face['image_uris'].get('normal')
+                            if not oracle_id:
+                                oracle_id = front_face["oracle_id"]
+                        if 'image_uris' in back_face:
+                            back_image = back_face['image_uris'].get('normal')
 
-                oracle_id = data['oracle_id']
-                if oracle_id not in cards_cache:
-                    card, _ = Card.objects.get_or_create(
-                        oracle_id=oracle_id,
-                        defaults={'name': data['name']}
-                    )
-                    cards_cache[oracle_id] = card
+                    if not image:
+                        skipped += 1
+                        continue
 
-                valid_finishes = {f.value for f in Finish}
-                finishes = [f for f in data.get('finishes', []) if f in valid_finishes]
+                    set_code = data['set']
+                    if set_code not in sets_cache:
+                        card_set, _ = Set.objects.get_or_create(
+                            short=set_code,
+                            defaults={'name': data['set_name']}
+                        )
+                        sets_cache[set_code] = card_set
 
-                variants_to_create.append(Variant(
-                    scryfall_id=data['id'],
-                    card=cards_cache[oracle_id],
-                    collector_number=data["collector_number"],
-                    image=data['image_uris']['normal'],
-                    card_set=sets_cache[set_code],
-                    finishes=finishes,
-                ))
+                    if oracle_id not in cards_cache:
+                        card, _ = Card.objects.get_or_create(
+                            oracle_id=oracle_id,
+                            defaults={'name': data['name']}
+                        )
+                        cards_cache[oracle_id] = card
+
+                    valid_finishes = {f.value for f in Finish}
+                    finishes = [f for f in data.get('finishes', []) if f in valid_finishes]
+
+                    variants_to_create.append(Variant(
+                        scryfall_id=data['id'],
+                        card=cards_cache[oracle_id],
+                        collector_number=data["collector_number"],
+                        image=image,
+                        back_image=back_image,
+                        card_set=sets_cache[set_code],
+                        finishes=finishes,
+                    ))
+                except  Exception as e:
+                    import pprint
+                    pprint.pprint(data)
+                    raise e
 
                 if len(variants_to_create) >= batch_size:
                     Variant.objects.bulk_create(variants_to_create)
