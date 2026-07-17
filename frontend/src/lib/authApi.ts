@@ -16,6 +16,22 @@ export interface LoginResponse {
   refresh: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  access: string;
+  refresh: string;
+  user: User;
+}
+
+export interface SocialLoginRequest {
+  access_token: string;
+}
+
 const baseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:9000/api/auth/",
   prepareHeaders: (headers) => {
@@ -73,10 +89,38 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    register: builder.mutation<RegisterResponse, RegisterRequest>({
+      query: (data) => ({
+        url: "register/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    googleLogin: builder.mutation<LoginResponse, SocialLoginRequest>({
+      query: (data) => ({
+        url: "google/",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    facebookLogin: builder.mutation<LoginResponse, SocialLoginRequest>({
+      query: (data) => ({
+        url: "facebook/",
+        method: "POST",
+        body: data,
+      }),
+    }),
     getMe: builder.query<User, void>({
       query: () => "me/",
     }),
   }),
 });
 
-export const { useLoginMutation, useGetMeQuery, useLazyGetMeQuery } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useGoogleLoginMutation,
+  useFacebookLoginMutation,
+  useGetMeQuery,
+  useLazyGetMeQuery,
+} = authApi;

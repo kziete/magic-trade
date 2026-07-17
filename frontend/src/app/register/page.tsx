@@ -17,29 +17,42 @@ import {
   Group,
 } from "@mantine/core";
 import { IconBrandGoogle, IconBrandFacebook } from "@tabler/icons-react";
-import { useLoginMutation } from "@/lib/authApi";
+import { useRegisterMutation } from "@/lib/authApi";
 import { useAuth } from "@/lib/AuthProvider";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [loginMutation, { isLoading }] = useLoginMutation();
+  const [registerMutation, { isLoading }] = useRegisterMutation();
 
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+
     try {
-      const result = await loginMutation({ username, password }).unwrap();
+      const result = await registerMutation({ username, email, password }).unwrap();
       localStorage.setItem("refreshToken", result.refresh);
       login(result.access);
       router.push("/");
-    } catch {
-      setError("Usuario o contraseña incorrectos");
+    } catch (err: unknown) {
+      const error = err as { data?: { error?: string } };
+      setError(error.data?.error || "Error al crear la cuenta");
     }
   };
 
@@ -57,7 +70,7 @@ export default function LoginPage() {
     <Container size="xs" py="xl">
       <Stack gap="lg">
         <Title order={1} ta="center">
-          Iniciar Sesión
+          Crear Cuenta
         </Title>
 
         <Stack gap="sm">
@@ -79,7 +92,7 @@ export default function LoginPage() {
           </Button>
         </Stack>
 
-        <Divider label="o inicia sesión con tu cuenta" labelPosition="center" />
+        <Divider label="o registrate con email" labelPosition="center" />
 
         <form onSubmit={handleSubmit}>
           <Stack gap="md">
@@ -87,31 +100,48 @@ export default function LoginPage() {
 
             <TextInput
               label="Usuario"
-              placeholder="Tu usuario"
+              placeholder="Tu nombre de usuario"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
 
+            <TextInput
+              label="Email"
+              type="email"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+
             <PasswordInput
               label="Contraseña"
-              placeholder="Tu contraseña"
+              placeholder="Mínimo 8 caracteres"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
 
+            <PasswordInput
+              label="Confirmar Contraseña"
+              placeholder="Repite tu contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+
             <Button type="submit" loading={isLoading} fullWidth>
-              Entrar
+              Crear Cuenta
             </Button>
           </Stack>
         </form>
 
         <Group justify="center">
           <Text size="sm" c="dimmed">
-            ¿No tienes cuenta?{" "}
-            <Anchor component={Link} href="/register">
-              Regístrate
+            ¿Ya tienes cuenta?{" "}
+            <Anchor component={Link} href="/login">
+              Inicia sesión
             </Anchor>
           </Text>
         </Group>
