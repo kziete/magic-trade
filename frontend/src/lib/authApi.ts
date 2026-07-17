@@ -29,7 +29,8 @@ export interface RegisterResponse {
 }
 
 export interface SocialLoginRequest {
-  access_token: string;
+  access_token?: string;
+  code?: string;
 }
 
 const baseQuery = fetchBaseQuery({

@@ -1,3 +1,5 @@
+import requests
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -68,5 +70,87 @@ class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
 
-class FacebookLoginView(SocialLoginView):
-    adapter_class = FacebookOAuth2Adapter
+class FacebookLoginView(APIView):
+    def post(self, request):
+        code = request.data.get('code')
+        if not code:
+            return Response(
+                {'error': 'Authorization code is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get Facebook app credentials
+        fb_settings = settings.SOCIALACCOUNT_PROVIDERS.get('facebook', {}).get('APP', {})
+        client_id = fb_settings.get('client_id')
+        client_secret = fb_settings.get('secret')
+        redirect_uri = 'http://localhost:3001/auth/callback/facebook'
+
+        # Exchange code for access token
+        token_url = 'https://graph.facebook.com/v18.0/oauth/access_token'
+        token_params = {
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': redirect_uri,
+            'code': code,
+        }
+
+        token_response = requests.get(token_url, params=token_params)
+        if token_response.status_code != 200:
+            return Response(
+                {'error': 'Failed to exchange code for token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        token_data = token_response.json()
+        access_token = token_data.get('access_token')
+
+        # Get user info from Facebook
+        user_url = 'https://graph.facebook.com/me'
+        user_params = {
+            'access_token': access_token,
+            'fields': 'id,email,first_name,last_name,name',
+        }
+
+        user_response = requests.get(user_url, params=user_params)
+        if user_response.status_code != 200:
+            return Response(
+                {'error': 'Failed to get user info from Facebook'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        fb_user = user_response.json()
+        email = fb_user.get('email')
+        fb_id = fb_user.get('id')
+        name = fb_user.get('name', '')
+
+        # Find or create user
+        if email:
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': f'fb_{fb_id}',
+                    'first_name': fb_user.get('first_name', ''),
+                    'last_name': fb_user.get('last_name', ''),
+                }
+            )
+        else:
+            user, created = User.objects.get_or_create(
+                username=f'fb_{fb_id}',
+                defaults={
+                    'first_name': fb_user.get('first_name', ''),
+                    'last_name': fb_user.get('last_name', ''),
+                }
+            )
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+            }
+        })

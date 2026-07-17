@@ -46,7 +46,11 @@ export default function RegisterPage() {
     }
 
     try {
-      const result = await registerMutation({ username, email, password }).unwrap();
+      const result = await registerMutation({
+        username,
+        email,
+        password,
+      }).unwrap();
       localStorage.setItem("refreshToken", result.refresh);
       login(result.access);
       router.push("/");
@@ -62,8 +66,13 @@ export default function RegisterPage() {
   };
 
   const handleFacebookLogin = () => {
-    // TODO: Implement Facebook OAuth flow
-    alert("Facebook login coming soon! Configure your OAuth credentials first.");
+    const clientId = "1549795390081630";
+    const redirectUri = encodeURIComponent(
+      "http://localhost:3001/auth/callback/facebook"
+    );
+    const scope = encodeURIComponent("public_profile");
+    const facebookAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+    window.location.href = facebookAuthUrl;
   };
 
   return (

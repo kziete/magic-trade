@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -188,8 +189,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '',  # Add your Google Client ID
-            'secret': '',     # Add your Google Secret
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_SECRET', ''),
             'key': ''
         },
         'SCOPE': ['profile', 'email'],
@@ -197,8 +198,8 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'facebook': {
         'APP': {
-            'client_id': '',  # Add your Facebook App ID
-            'secret': '',     # Add your Facebook App Secret
+            'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
+            'secret': os.environ.get('FACEBOOK_SECRET', ''),
             'key': ''
         },
         'METHOD': 'oauth2',
