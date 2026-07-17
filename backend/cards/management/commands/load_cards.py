@@ -1,6 +1,6 @@
 import json
 from django.core.management.base import BaseCommand
-from cards.models import Set, Card, Variant, Finish, Available, Wanted
+from cards.models import Set, Card, Variant, Finish
 
 
 class Command(BaseCommand):
@@ -8,26 +8,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('file', type=str, help='Ruta al archivo JSONL')
-        parser.add_argument(
-            '--clear',
-            action='store_true',
-            help='Eliminar todas las cartas y sets antes de cargar',
-        )
 
     def handle(self, *args, **options):
         file_path = options['file']
 
-        if options['clear']:
-            self.stdout.write('Eliminando datos existentes...')
-            Available.objects.all().delete()
-            Wanted.objects.all().delete()
-            Variant.objects.all().delete()
-            Card.objects.all().delete()
-            Set.objects.all().delete()
-
         sets_cache = {}
         cards_cache = {}
-        variants_to_create = []
+        variants_to_upsert = []
         skipped = 0
         batch_size = 1000
 
@@ -80,7 +67,7 @@ class Command(BaseCommand):
                     valid_finishes = {f.value for f in Finish}
                     finishes = [f for f in data.get('finishes', []) if f in valid_finishes]
 
-                    variants_to_create.append(Variant(
+                    variants_to_upsert.append(Variant(
                         scryfall_id=data['id'],
                         card=cards_cache[oracle_id],
                         collector_number=data["collector_number"],
@@ -89,18 +76,28 @@ class Command(BaseCommand):
                         card_set=sets_cache[set_code],
                         finishes=finishes,
                     ))
-                except  Exception as e:
+                except Exception as e:
                     import pprint
                     pprint.pprint(data)
                     raise e
 
-                if len(variants_to_create) >= batch_size:
-                    Variant.objects.bulk_create(variants_to_create)
+                if len(variants_to_upsert) >= batch_size:
+                    Variant.objects.bulk_create(
+                        variants_to_upsert,
+                        update_conflicts=True,
+                        unique_fields=['scryfall_id'],
+                        update_fields=['card', 'collector_number', 'image', 'back_image', 'card_set', 'finishes'],
+                    )
                     self.stdout.write(f'  Procesadas {line_num} líneas...')
-                    variants_to_create = []
+                    variants_to_upsert = []
 
-        if variants_to_create:
-            Variant.objects.bulk_create(variants_to_create)
+        if variants_to_upsert:
+            Variant.objects.bulk_create(
+                variants_to_upsert,
+                update_conflicts=True,
+                unique_fields=['scryfall_id'],
+                update_fields=['card', 'collector_number', 'image', 'back_image', 'card_set', 'finishes'],
+            )
 
         total_variants = Variant.objects.count()
         total_cards = Card.objects.count()
