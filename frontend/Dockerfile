@@ -10,6 +10,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# `output: standalone` bakes rewrites() destinations into routes-manifest.json
+# at build time, so BACKEND_INTERNAL_URL must be available here, not just at
+# container runtime.
+ARG BACKEND_INTERNAL_URL=http://web:8000
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 RUN npm run build
 
 # ---- runner ----

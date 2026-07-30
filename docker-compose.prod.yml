@@ -21,6 +21,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - BACKEND_INTERNAL_URL=http://web:8000
     restart: unless-stopped
     environment:
       - BACKEND_INTERNAL_URL=http://web:8000
