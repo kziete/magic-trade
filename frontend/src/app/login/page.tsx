@@ -1,22 +1,18 @@
 "use client";
 
-import {
-  Container,
-  Title,
-  Stack,
-  Button,
-} from "@mantine/core";
-import { IconBrandFacebook } from "@tabler/icons-react";
+import { Container, Title, Stack, Button } from "@mantine/core";
+import { IconBrandGoogle } from "@tabler/icons-react";
 
 export default function LoginPage() {
-  const handleFacebookLogin = () => {
-    const clientId = "1549795390081630";
+  const handleGoogleLogin = () => {
+    const clientId =
+      "515844406627-aga1ubuskj6eais72skhbi4tfq08ca9m.apps.googleusercontent.com";
     const redirectUri = encodeURIComponent(
-      `${window.location.origin}/auth/callback/facebook`
+      `${window.location.origin}/auth/callback/google`
     );
-    const scope = encodeURIComponent("public_profile");
-    const facebookAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
-    window.location.href = facebookAuthUrl;
+    const scope = encodeURIComponent("profile email");
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&access_type=online`;
+    window.location.href = googleAuthUrl;
   };
 
   return (
@@ -29,11 +25,11 @@ export default function LoginPage() {
         <Stack gap="sm">
           <Button
             variant="default"
-            leftSection={<IconBrandFacebook size={18} />}
-            onClick={handleFacebookLogin}
+            leftSection={<IconBrandGoogle size={18} />}
+            onClick={handleGoogleLogin}
             fullWidth
           >
-            Continuar con Facebook
+            Continuar con Google
           </Button>
         </Stack>
       </Stack>
