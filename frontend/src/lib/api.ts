@@ -137,8 +137,12 @@ export const cardsApi = createApi({
     getLatestAvailable: builder.query<Available[], void>({
       query: () => "available/latest/",
     }),
-    getInventory: builder.query<PaginatedResponse<Available>, number>({
-      query: (page = 1) => `inventory/?page=${page}`,
+    getInventory: builder.query<PaginatedResponse<Available>, { page?: number; query?: string }>({
+      query: ({ page = 1, query } = {}) => {
+        const params = new URLSearchParams({ page: page.toString() });
+        if (query) params.append("query", query);
+        return `inventory/?${params.toString()}`;
+      },
     }),
     addToInventory: builder.mutation<Available, CreateAvailableRequest>({
       query: (body) => ({
@@ -153,8 +157,12 @@ export const cardsApi = createApi({
         method: "DELETE",
       }),
     }),
-    getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number }>({
-      query: ({ username, page }) => `users/${username}/inventory/?page=${page}`,
+    getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number; query?: string }>({
+      query: ({ username, page, query }) => {
+        const params = new URLSearchParams({ page: page.toString() });
+        if (query) params.append("query", query);
+        return `users/${username}/inventory/?${params.toString()}`;
+      },
     }),
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,

@@ -71,9 +71,15 @@ class InventoryListView(ListCreateAPIView):
         return AvailableSerializer
 
     def get_queryset(self):
-        return Available.objects.filter(user=self.request.user).select_related(
+        queryset = Available.objects.filter(user=self.request.user).select_related(
             'user', 'variant__card', 'variant__card_set'
         ).order_by('-id')
+
+        query = self.request.query_params.get('query')
+        if query:
+            queryset = queryset.filter(variant__card__name__icontains=query)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -92,9 +98,15 @@ class UserInventoryListView(ListAPIView):
 
     def get_queryset(self):
         username = self.kwargs['username']
-        return Available.objects.filter(user__username=username).select_related(
+        queryset = Available.objects.filter(user__username=username).select_related(
             'user', 'variant__card', 'variant__card_set'
         ).order_by('-id')
+
+        query = self.request.query_params.get('query')
+        if query:
+            queryset = queryset.filter(variant__card__name__icontains=query)
+
+        return queryset
 
 
 class LatestAvailableListView(ListAPIView):

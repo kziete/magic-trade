@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import {
   Container,
@@ -16,8 +16,10 @@ import {
   Divider,
   Loader,
   Center,
+  TextInput,
 } from "@mantine/core";
-import { IconUser, IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
+import { useDebouncedValue } from "@mantine/hooks";
+import { IconUser, IconPhone, IconMail, IconBrandFacebook, IconSearch } from "@tabler/icons-react";
 import { useGetUserInventoryQuery, useGetUserProfileQuery } from "@/lib/api";
 import InventoryTable from "@/components/InventoryTable";
 import InventoryGrid from "@/components/InventoryGrid";
@@ -31,6 +33,9 @@ function UserInventoryPageContent() {
   const params = useParams();
   const username = params.username as string;
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const isFirstRender = useRef(true);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -51,7 +56,19 @@ function UserInventoryPageContent() {
     data: inventoryData,
     isLoading,
     error,
-  } = useGetUserInventoryQuery({ username, page });
+  } = useGetUserInventoryQuery({ username, page, query: debouncedSearch || undefined });
+
+  // Reset to page 1 whenever the filter changes (but not on the initial mount,
+  // so deep-linking to a specific page still works before the user types).
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (page !== 1) {
+      router.push(`/inventory/${username}?page=1`);
+    }
+  }, [debouncedSearch]);
 
   const { data: profile } = useGetUserProfileQuery(username);
 
@@ -121,6 +138,14 @@ function UserInventoryPageContent() {
               <Title order={1}>Inventario de {username}</Title>
               <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
             </Group>
+
+            <TextInput
+              placeholder="Buscar por nombre..."
+              leftSection={<IconSearch size={16} />}
+              value={search}
+              onChange={(e) => setSearch(e.currentTarget.value)}
+              maw={400}
+            />
 
             {viewMode === "table" ? (
               <InventoryTable

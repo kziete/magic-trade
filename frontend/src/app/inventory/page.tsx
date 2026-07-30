@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Container,
@@ -11,8 +11,10 @@ import {
   Pagination,
   Group,
   Button,
+  TextInput,
 } from "@mantine/core";
-import { IconPlus, IconUpload } from "@tabler/icons-react";
+import { useDebouncedValue } from "@mantine/hooks";
+import { IconPlus, IconUpload, IconSearch } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
@@ -30,6 +32,9 @@ function InventoryPageContent() {
   const [panelOpened, setPanelOpened] = useState(false);
   const [importPanelOpened, setImportPanelOpened] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const isFirstRender = useRef(true);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -51,9 +56,22 @@ function InventoryPageContent() {
     isLoading,
     error,
     refetch,
-  } = useGetInventoryQuery(page, {
-    skip: !user,
-  });
+  } = useGetInventoryQuery(
+    { page, query: debouncedSearch || undefined },
+    { skip: !user }
+  );
+
+  // Reset to page 1 whenever the filter changes (but not on the initial mount,
+  // so deep-linking to a specific page still works before the user types).
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (page !== 1) {
+      router.push("/inventory?page=1");
+    }
+  }, [debouncedSearch]);
 
   const [deleteFromInventory] = useDeleteFromInventoryMutation();
 
@@ -103,6 +121,14 @@ function InventoryPageContent() {
             </Button>
           </Group>
         </Group>
+
+        <TextInput
+          placeholder="Buscar por nombre..."
+          leftSection={<IconSearch size={16} />}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          maw={400}
+        />
 
         {viewMode === "table" ? (
           <InventoryTable
