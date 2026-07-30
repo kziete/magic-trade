@@ -19,7 +19,9 @@ import CardSearch from "@/components/CardSearch";
 import { useGetLatestAvailableQuery } from "@/lib/api";
 
 export default function Home() {
-  const { data: latest, isLoading, error } = useGetLatestAvailableQuery();
+  const { data: latest, isLoading, error } = useGetLatestAvailableQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   return (
     <Container size="lg" py="xl">
