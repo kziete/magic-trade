@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthProvider";
 export default function Header() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const displayName = user ? `${user.first_name} ${user.last_name}`.trim() || user.username : "";
 
   const handleLogout = () => {
     logout();
@@ -64,7 +65,7 @@ export default function Header() {
                     variant="subtle"
                     leftSection={<Avatar size="sm" radius="xl"><IconUser size={16} /></Avatar>}
                   >
-                    {user.username}
+                    {displayName}
                   </Button>
                 </Menu.Target>
                 <Menu.Dropdown>
@@ -89,7 +90,7 @@ export default function Header() {
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Label>{user.username}</Menu.Label>
+                  <Menu.Label>{displayName}</Menu.Label>
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconLogout size={16} />}
