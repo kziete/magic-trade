@@ -9,6 +9,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
+from accounts.models import Profile
+from accounts.serializers import ProfileSerializer
 
 
 class MeView(APIView):
@@ -16,13 +18,24 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
+        profile = getattr(user, 'profile', None)
         return Response({
             'id': user.id,
             'username': user.username,
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
+            'phone': profile.phone if profile else None,
+            'contact_email': profile.contact_email if profile else None,
+            'facebook_url': profile.facebook_url if profile else None,
         })
+
+    def patch(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return self.get(request)
 
 
 class RegisterView(APIView):

@@ -104,6 +104,13 @@ export interface ImportInventoryResult {
   errors: string[];
 }
 
+export interface UserProfile {
+  username: string;
+  phone: string | null;
+  contact_email: string | null;
+  facebook_url: string | null;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
@@ -146,6 +153,9 @@ export const cardsApi = createApi({
     getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number }>({
       query: ({ username, page }) => `users/${username}/inventory/?page=${page}`,
     }),
+    getUserProfile: builder.query<UserProfile, string>({
+      query: (username) => `users/${username}/`,
+    }),
     importInventory: builder.mutation<ImportInventoryResult, { file: File; format: string; clear: boolean }>({
       query: ({ file, format, clear }) => {
         const formData = new FormData();
@@ -172,4 +182,5 @@ export const {
   useDeleteFromInventoryMutation,
   useGetUserInventoryQuery,
   useImportInventoryMutation,
+  useGetUserProfileQuery,
 } = cardsApi;

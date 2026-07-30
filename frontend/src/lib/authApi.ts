@@ -6,6 +6,9 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  phone: string | null;
+  contact_email: string | null;
+  facebook_url: string | null;
 }
 
 export interface LoginRequest {
@@ -33,6 +36,12 @@ export interface RegisterResponse {
 export interface SocialLoginRequest {
   access_token?: string;
   code?: string;
+}
+
+export interface UpdateProfileRequest {
+  phone?: string | null;
+  contact_email?: string | null;
+  facebook_url?: string | null;
 }
 
 const baseQuery = fetchBaseQuery({
@@ -116,6 +125,13 @@ export const authApi = createApi({
     getMe: builder.query<User, void>({
       query: () => "me/",
     }),
+    updateProfile: builder.mutation<User, UpdateProfileRequest>({
+      query: (body) => ({
+        url: "me/",
+        method: "PATCH",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -126,4 +142,5 @@ export const {
   useFacebookLoginMutation,
   useGetMeQuery,
   useLazyGetMeQuery,
+  useUpdateProfileMutation,
 } = authApi;

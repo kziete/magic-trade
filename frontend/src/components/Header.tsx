@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Group, Button, Text, Menu, Avatar, ActionIcon, Box } from "@mantine/core";
-import { IconUser, IconLogout, IconCards } from "@tabler/icons-react";
+import { IconUser, IconLogout, IconCards, IconUserCircle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 
 export default function Header() {
@@ -70,6 +70,13 @@ export default function Header() {
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item
+                    component={Link}
+                    href="/profile"
+                    leftSection={<IconUserCircle size={16} />}
+                  >
+                    Mi perfil
+                  </Menu.Item>
+                  <Menu.Item
                     leftSection={<IconLogout size={16} />}
                     onClick={handleLogout}
                   >
@@ -92,6 +99,13 @@ export default function Header() {
                 <Menu.Dropdown>
                   <Menu.Label>{displayName}</Menu.Label>
                   <Menu.Divider />
+                  <Menu.Item
+                    component={Link}
+                    href="/profile"
+                    leftSection={<IconUserCircle size={16} />}
+                  >
+                    Mi perfil
+                  </Menu.Item>
                   <Menu.Item
                     leftSection={<IconLogout size={16} />}
                     onClick={handleLogout}

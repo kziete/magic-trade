@@ -1,4 +1,6 @@
 import io
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
@@ -93,6 +95,18 @@ class UserInventoryListView(ListAPIView):
         return Available.objects.filter(user__username=username).select_related(
             'user', 'variant__card', 'variant__card_set'
         ).order_by('-id')
+
+
+class UserProfileView(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        profile = getattr(user, 'profile', None)
+        return Response({
+            'username': user.username,
+            'phone': profile.phone if profile else None,
+            'contact_email': profile.contact_email if profile else None,
+            'facebook_url': profile.facebook_url if profile else None,
+        })
 
 
 class InventoryImportView(APIView):

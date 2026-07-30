@@ -8,8 +8,11 @@ import {
   Stack,
   Pagination,
   Group,
+  Text,
+  Anchor,
 } from "@mantine/core";
-import { useGetUserInventoryQuery } from "@/lib/api";
+import { IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
+import { useGetUserInventoryQuery, useGetUserProfileQuery } from "@/lib/api";
 import InventoryTable from "@/components/InventoryTable";
 import InventoryGrid from "@/components/InventoryGrid";
 import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle";
@@ -44,6 +47,11 @@ export default function UserInventoryPage() {
     error,
   } = useGetUserInventoryQuery({ username, page });
 
+  const { data: profile } = useGetUserProfileQuery(username);
+
+  const hasContactInfo =
+    profile && (profile.phone || profile.contact_email || profile.facebook_url);
+
   const totalPages = inventoryData
     ? Math.ceil(inventoryData.count / 20)
     : 1;
@@ -59,6 +67,36 @@ export default function UserInventoryPage() {
           <Title order={1}>Inventario de {username}</Title>
           <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
         </Group>
+
+        {hasContactInfo && (
+          <Group gap="lg">
+            {profile.phone && (
+              <Group gap={6}>
+                <IconPhone size={16} />
+                <Text size="sm">{profile.phone}</Text>
+              </Group>
+            )}
+            {profile.contact_email && (
+              <Group gap={6}>
+                <IconMail size={16} />
+                <Text size="sm">{profile.contact_email}</Text>
+              </Group>
+            )}
+            {profile.facebook_url && (
+              <Group gap={6}>
+                <IconBrandFacebook size={16} />
+                <Anchor
+                  href={profile.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                >
+                  Facebook
+                </Anchor>
+              </Group>
+            )}
+          </Group>
+        )}
 
         {viewMode === "table" ? (
           <InventoryTable
