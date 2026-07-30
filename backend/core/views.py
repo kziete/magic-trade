@@ -154,24 +154,24 @@ class FacebookLoginView(APIView):
         fb_id = fb_user.get('id')
         name = fb_user.get('name', '')
 
-        # Find or create user
-        if email:
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={
-                    'username': f'fb_{fb_id}',
-                    'first_name': fb_user.get('first_name', ''),
-                    'last_name': fb_user.get('last_name', ''),
-                }
-            )
+        # Find or create user. Matching is keyed on the Facebook id (stable,
+        # never changes) via Profile.facebook_id — NOT username (which the
+        # user can change later in /profile) and not email alone (Facebook
+        # may not return one, and User.email isn't unique in Django).
+        profile = Profile.objects.select_related('user').filter(facebook_id=fb_id).first()
+
+        if profile:
+            user = profile.user
         else:
-            user, created = User.objects.get_or_create(
-                username=f'fb_{fb_id}',
-                defaults={
-                    'first_name': fb_user.get('first_name', ''),
-                    'last_name': fb_user.get('last_name', ''),
-                }
-            )
+            user = User.objects.filter(email=email).first() if email else None
+            if not user:
+                user = User.objects.create(
+                    username=f'fb_{fb_id}',
+                    email=email or '',
+                    first_name=fb_user.get('first_name', ''),
+                    last_name=fb_user.get('last_name', ''),
+                )
+            Profile.objects.update_or_create(user=user, defaults={'facebook_id': fb_id})
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
