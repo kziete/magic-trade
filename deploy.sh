@@ -45,13 +45,13 @@ echo "==> Building new images (old containers keep serving traffic during this s
 docker compose -f "$COMPOSE_FILE" build web frontend
 
 echo "==> Rolling out web..."
-docker rollout -f "$COMPOSE_FILE" web
+docker rollout -f "$COMPOSE_FILE" web -t 40
 
 echo "==> Rolling out frontend..."
-docker rollout -f "$COMPOSE_FILE" frontend
+docker rollout -f "$COMPOSE_FILE" frontend -t 40
 
-echo "==> Reconciling any other changes (Caddyfile, env, compose file)..."
-docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+# echo "==> Reconciling any other changes (Caddyfile, env, compose file)..."
+# docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
 echo "==> Cleaning up old images..."
 docker image prune -f >/dev/null
