@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Container,
@@ -23,7 +23,7 @@ import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle"
 
 const VIEW_MODE_KEY = "inventory-view-mode";
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
@@ -145,5 +145,21 @@ export default function InventoryPage() {
         />
       </Stack>
     </Container>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container size="lg" py="xl">
+          <Center>
+            <Loader size="lg" />
+          </Center>
+        </Container>
+      }
+    >
+      <InventoryPageContent />
+    </Suspense>
   );
 }

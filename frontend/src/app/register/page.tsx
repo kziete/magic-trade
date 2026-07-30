@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const handleFacebookLogin = () => {
     const clientId = "1549795390081630";
     const redirectUri = encodeURIComponent(
-      "http://localhost:3001/auth/callback/facebook"
+      `${window.location.origin}/auth/callback/facebook`
     );
     const scope = encodeURIComponent("public_profile");
     const facebookAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;

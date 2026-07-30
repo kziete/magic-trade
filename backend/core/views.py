@@ -114,7 +114,7 @@ class FacebookLoginView(APIView):
         fb_settings = settings.SOCIALACCOUNT_PROVIDERS.get('facebook', {}).get('APP', {})
         client_id = fb_settings.get('client_id')
         client_secret = fb_settings.get('secret')
-        redirect_uri = 'http://localhost:3001/auth/callback/facebook'
+        redirect_uri = settings.FACEBOOK_REDIRECT_URI
 
         # Exchange code for access token
         token_url = 'https://graph.facebook.com/v18.0/oauth/access_token'

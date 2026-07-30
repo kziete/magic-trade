@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.prod
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - BACKEND_INTERNAL_URL=http://web:8000
+    depends_on:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    env_file:
+      - .env.prod
+    depends_on:
+      - frontend
+
+  db_backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - ./backups:/backups
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Backup service started. Dumping daily, retaining 7 days.";
+        while true; do
+          TS=$$(date +%Y%m%d_%H%M%S);
+          echo "[$$TS] Running pg_dump...";
+          PGPASSWORD="$$POSTGRES_PASSWORD" pg_dump -h db -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" | gzip > "/backups/backup_$$TS.sql.gz";
+          find /backups -name "backup_*.sql.gz" -mtime +7 -delete;
+          echo "[$$TS] Backup complete. Sleeping 24h.";
+          sleep 86400;
+        done
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

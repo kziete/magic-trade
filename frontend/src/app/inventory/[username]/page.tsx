@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import {
   Container,
@@ -14,6 +14,8 @@ import {
   Card,
   Avatar,
   Divider,
+  Loader,
+  Center,
 } from "@mantine/core";
 import { IconUser, IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
 import { useGetUserInventoryQuery, useGetUserProfileQuery } from "@/lib/api";
@@ -23,7 +25,7 @@ import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle"
 
 const VIEW_MODE_KEY = "inventory-view-mode";
 
-export default function UserInventoryPage() {
+function UserInventoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -149,5 +151,21 @@ export default function UserInventoryPage() {
         </Grid.Col>
       </Grid>
     </Container>
+  );
+}
+
+export default function UserInventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container size="lg" py="xl">
+          <Center>
+            <Loader size="lg" />
+          </Center>
+        </Container>
+      }
+    >
+      <UserInventoryPageContent />
+    </Suspense>
   );
 }

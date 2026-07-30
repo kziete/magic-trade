@@ -17,9 +17,13 @@ staticfiles/
 
 # Environment
 .env
+.env.prod
 .venv/
 venv/
 ENV/
+
+# Production backups
+backups/
 
 # IDE
 .idea/

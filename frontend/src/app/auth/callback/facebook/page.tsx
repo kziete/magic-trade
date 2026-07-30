@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Container, Loader, Center, Alert, Stack, Text } from "@mantine/core";
 import { useFacebookLoginMutation } from "@/lib/authApi";
 import { useAuth } from "@/lib/AuthProvider";
 
-export default function FacebookCallbackPage() {
+function FacebookCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -60,5 +60,21 @@ export default function FacebookCallbackPage() {
         </Stack>
       </Center>
     </Container>
+  );
+}
+
+export default function FacebookCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container size="xs" py="xl">
+          <Center>
+            <Loader size="lg" />
+          </Center>
+        </Container>
+      }
+    >
+      <FacebookCallbackContent />
+    </Suspense>
   );
 }

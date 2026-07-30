@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:9000/api/",
+  baseUrl: "/api/",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -23,7 +23,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 
     if (refreshToken) {
       const refreshResult = await fetchBaseQuery({
-        baseUrl: "http://localhost:9000/api/auth/",
+        baseUrl: "/api/auth/",
       })(
         {
           url: "refresh/",

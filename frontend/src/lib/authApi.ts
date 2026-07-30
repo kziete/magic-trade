@@ -46,7 +46,7 @@ export interface UpdateProfileRequest {
 }
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:9000/api/auth/",
+  baseUrl: "/api/auth/",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token");
     if (token) {
