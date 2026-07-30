@@ -31,6 +31,22 @@ class MeView(APIView):
         })
 
     def patch(self, request):
+        username = request.data.get('username')
+        if username is not None:
+            username = username.strip()
+            if not username:
+                return Response(
+                    {'error': 'Username cannot be empty'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if User.objects.exclude(pk=request.user.pk).filter(username=username).exists():
+                return Response(
+                    {'error': 'Username already exists'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            request.user.username = username
+            request.user.save(update_fields=['username'])
+
         profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

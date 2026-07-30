@@ -24,6 +24,7 @@ export default function ProfilePage() {
   });
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
+  const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
@@ -38,6 +39,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (me) {
+      setUsername(me.username);
       setPhone(me.phone ?? "");
       setContactEmail(me.contact_email ?? "");
       setFacebookUrl(me.facebook_url ?? "");
@@ -47,15 +49,30 @@ export default function ProfilePage() {
   const handleSubmit = async () => {
     setError("");
     setSuccess(false);
+
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      setError("El nombre de usuario no puede estar vacío");
+      return;
+    }
+
     try {
       await updateProfile({
+        username: trimmedUsername,
         phone: phone.trim() || null,
         contact_email: contactEmail.trim() || null,
         facebook_url: facebookUrl.trim() || null,
       }).unwrap();
       setSuccess(true);
-    } catch {
-      setError("Error al guardar el perfil");
+    } catch (err) {
+      const message =
+        typeof err === "object" &&
+        err !== null &&
+        "data" in err &&
+        typeof (err as { data?: { error?: string } }).data?.error === "string"
+          ? (err as { data: { error: string } }).data.error
+          : "Error al guardar el perfil";
+      setError(message);
     }
   };
 
@@ -77,6 +94,13 @@ export default function ProfilePage() {
         <Stack gap="md">
           {error && <Alert color="red">{error}</Alert>}
           {success && <Alert color="green">Perfil actualizado exitosamente</Alert>}
+
+          <TextInput
+            label="Nombre de usuario"
+            placeholder="tu_usuario"
+            value={username}
+            onChange={(e) => setUsername(e.currentTarget.value)}
+          />
 
           <TextInput
             label="Teléfono"

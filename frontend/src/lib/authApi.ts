@@ -39,6 +39,7 @@ export interface SocialLoginRequest {
 }
 
 export interface UpdateProfileRequest {
+  username?: string;
   phone?: string | null;
   contact_email?: string | null;
   facebook_url?: string | null;
