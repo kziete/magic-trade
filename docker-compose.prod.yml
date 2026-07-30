@@ -6,10 +6,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.prod
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   web:
     build:
