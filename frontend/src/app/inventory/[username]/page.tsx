@@ -10,8 +10,12 @@ import {
   Group,
   Text,
   Anchor,
+  Grid,
+  Card,
+  Avatar,
+  Divider,
 } from "@mantine/core";
-import { IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
+import { IconUser, IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
 import { useGetUserInventoryQuery, useGetUserProfileQuery } from "@/lib/api";
 import InventoryTable from "@/components/InventoryTable";
 import InventoryGrid from "@/components/InventoryGrid";
@@ -62,68 +66,88 @@ export default function UserInventoryPage() {
 
   return (
     <Container size="lg" py="xl">
-      <Stack gap="lg">
-        <Group justify="space-between" align="center">
-          <Title order={1}>Inventario de {username}</Title>
-          <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
-        </Group>
+      <Grid gutter="lg">
+        <Grid.Col span={{ base: 12, md: 3 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Stack gap="md" align="center">
+              <Avatar size={64} radius="xl">
+                <IconUser size={32} />
+              </Avatar>
+              <Text fw={600} size="lg">
+                {username}
+              </Text>
 
-        {hasContactInfo && (
-          <Group gap="lg">
-            {profile.phone && (
-              <Group gap={6}>
-                <IconPhone size={16} />
-                <Text size="sm">{profile.phone}</Text>
+              {hasContactInfo && (
+                <>
+                  <Divider w="100%" />
+                  <Stack gap="xs" w="100%">
+                    {profile.phone && (
+                      <Group gap={6} wrap="nowrap">
+                        <IconPhone size={16} />
+                        <Text size="sm">{profile.phone}</Text>
+                      </Group>
+                    )}
+                    {profile.contact_email && (
+                      <Group gap={6} wrap="nowrap">
+                        <IconMail size={16} />
+                        <Text size="sm">{profile.contact_email}</Text>
+                      </Group>
+                    )}
+                    {profile.facebook_url && (
+                      <Group gap={6} wrap="nowrap">
+                        <IconBrandFacebook size={16} />
+                        <Anchor
+                          href={profile.facebook_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="sm"
+                        >
+                          Facebook
+                        </Anchor>
+                      </Group>
+                    )}
+                  </Stack>
+                </>
+              )}
+            </Stack>
+          </Card>
+        </Grid.Col>
+
+        <Grid.Col span={{ base: 12, md: 9 }}>
+          <Stack gap="lg">
+            <Group justify="space-between" align="center">
+              <Title order={1}>Inventario de {username}</Title>
+              <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
+            </Group>
+
+            {viewMode === "table" ? (
+              <InventoryTable
+                items={inventoryData?.results ?? []}
+                isLoading={isLoading}
+                error={!!error}
+                emptyMessage={`${username} no tiene cartas en su inventario`}
+              />
+            ) : (
+              <InventoryGrid
+                items={inventoryData?.results ?? []}
+                isLoading={isLoading}
+                error={!!error}
+                emptyMessage={`${username} no tiene cartas en su inventario`}
+              />
+            )}
+
+            {!isLoading && !error && inventoryData && inventoryData.results.length > 0 && (
+              <Group justify="center">
+                <Pagination
+                  value={page}
+                  onChange={handlePageChange}
+                  total={totalPages}
+                />
               </Group>
             )}
-            {profile.contact_email && (
-              <Group gap={6}>
-                <IconMail size={16} />
-                <Text size="sm">{profile.contact_email}</Text>
-              </Group>
-            )}
-            {profile.facebook_url && (
-              <Group gap={6}>
-                <IconBrandFacebook size={16} />
-                <Anchor
-                  href={profile.facebook_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="sm"
-                >
-                  Facebook
-                </Anchor>
-              </Group>
-            )}
-          </Group>
-        )}
-
-        {viewMode === "table" ? (
-          <InventoryTable
-            items={inventoryData?.results ?? []}
-            isLoading={isLoading}
-            error={!!error}
-            emptyMessage={`${username} no tiene cartas en su inventario`}
-          />
-        ) : (
-          <InventoryGrid
-            items={inventoryData?.results ?? []}
-            isLoading={isLoading}
-            error={!!error}
-            emptyMessage={`${username} no tiene cartas en su inventario`}
-          />
-        )}
-
-        {!isLoading && !error && inventoryData && inventoryData.results.length > 0 && (
-          <Group justify="center">
-            <Pagination
-              value={page}
-              onChange={handlePageChange}
-              total={totalPages}
-            />
-          </Group>
-        )}
-      </Stack>
+          </Stack>
+        </Grid.Col>
+      </Grid>
     </Container>
   );
 }
