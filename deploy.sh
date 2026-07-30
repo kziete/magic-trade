@@ -25,12 +25,17 @@ COMPOSE_FILE="docker-compose.prod.yml"
 
 trap 'echo "Deploy failed (line $LINENO). Check '\''docker compose -f docker-compose.prod.yml logs\'' for details." >&2' ERR
 
-if ! docker rollout --help >/dev/null 2>&1; then
+PLUGIN_PATH="$HOME/.docker/cli-plugins/docker-rollout"
+if [ ! -x "$PLUGIN_PATH" ]; then
+  # Note: `docker rollout --help` is NOT a reliable "is it installed" check —
+  # Docker resolves --help before checking if "rollout" is a real subcommand,
+  # so it prints the generic docker help (exit 0) even when the plugin is
+  # missing. Check the plugin file itself instead.
   echo "==> Installing docker-rollout plugin..."
-  mkdir -p ~/.docker/cli-plugins
+  mkdir -p "$HOME/.docker/cli-plugins"
   curl -fsSL https://raw.githubusercontent.com/wowu/docker-rollout/main/docker-rollout \
-    -o ~/.docker/cli-plugins/docker-rollout
-  chmod +x ~/.docker/cli-plugins/docker-rollout
+    -o "$PLUGIN_PATH"
+  chmod +x "$PLUGIN_PATH"
 fi
 
 echo "==> Pulling latest code..."
