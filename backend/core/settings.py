@@ -33,6 +33,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
+# Next.js proxies requests to Django over plain HTTP inside the Docker network
+# (Host: web:8000), so Django can't tell the browser's real request was HTTPS
+# on the public domain. Without this, CSRF checks reject every POST (e.g.
+# admin login) because the browser's Origin (https://<DOMAIN>) never matches
+# what Django computes on its own (http://web:8000).
+CSRF_TRUSTED_ORIGINS = [f'https://{d.strip()}' for d in os.environ.get('DOMAIN', '').split(',') if d.strip()]
+
 
 # Application definition
 
