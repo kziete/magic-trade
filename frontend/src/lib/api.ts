@@ -134,6 +134,9 @@ export const cardsApi = createApi({
         return `cards/${cardId}/available/${queryString ? `?${queryString}` : ""}`;
       },
     }),
+    getLatestAvailable: builder.query<Available[], void>({
+      query: () => "available/latest/",
+    }),
     getInventory: builder.query<PaginatedResponse<Available>, number>({
       query: (page = 1) => `inventory/?page=${page}`,
     }),
@@ -177,6 +180,7 @@ export const {
   useGetCardQuery,
   useGetVariantsQuery,
   useGetAvailableQuery,
+  useGetLatestAvailableQuery,
   useGetInventoryQuery,
   useAddToInventoryMutation,
   useDeleteFromInventoryMutation,

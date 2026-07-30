@@ -97,6 +97,17 @@ class UserInventoryListView(ListAPIView):
         ).order_by('-id')
 
 
+class LatestAvailableListView(ListAPIView):
+    serializer_class = AvailableSerializer
+    pagination_class = None
+    authentication_classes = []
+
+    def get_queryset(self):
+        return Available.objects.select_related(
+            'user', 'variant__card', 'variant__card_set'
+        ).order_by('-id')[:12]
+
+
 class UserProfileView(APIView):
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
