@@ -7,8 +7,10 @@ import {
   Center,
   Text,
   ActionIcon,
+  Anchor,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import Link from "next/link";
 import { Wanted } from "@/lib/api";
 
 interface WishlistTableProps {
@@ -84,13 +86,21 @@ export default function WishlistTable({
               )}
             </Table.Td>
             <Table.Td>
-              <Badge
-                size="sm"
-                variant={item.matches_count > 0 ? "filled" : "outline"}
-                color={item.matches_count > 0 ? "teal" : "gray"}
-              >
-                {item.matches_count}
-              </Badge>
+              {item.matches_count > 0 ? (
+                <Anchor
+                  component={Link}
+                  href={`/cards/${item.card_id}?wanted=${item.id}`}
+                  underline="never"
+                >
+                  <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                    {item.matches_count}
+                  </Badge>
+                </Anchor>
+              ) : (
+                <Badge size="sm" variant="outline" color="gray">
+                  {item.matches_count}
+                </Badge>
+              )}
             </Table.Td>
             {onDelete && (
               <Table.Td>

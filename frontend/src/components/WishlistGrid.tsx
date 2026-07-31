@@ -12,8 +12,10 @@ import {
   Loader,
   Center,
   Box,
+  Anchor,
 } from "@mantine/core";
 import { IconTrash, IconCards } from "@tabler/icons-react";
+import Link from "next/link";
 import { Wanted } from "@/lib/api";
 
 interface WishlistGridProps {
@@ -132,13 +134,21 @@ export default function WishlistGrid({
                   Sin preferencia
                 </Badge>
               )}
-              <Badge
-                size="xs"
-                variant={item.matches_count > 0 ? "filled" : "outline"}
-                color={item.matches_count > 0 ? "teal" : "gray"}
-              >
-                {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
-              </Badge>
+              {item.matches_count > 0 ? (
+                <Anchor
+                  component={Link}
+                  href={`/cards/${item.card_id}?wanted=${item.id}`}
+                  underline="never"
+                >
+                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                    {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+                  </Badge>
+                </Anchor>
+              ) : (
+                <Badge size="xs" variant="outline" color="gray">
+                  {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+                </Badge>
+              )}
             </Group>
           </Stack>
         </Card>

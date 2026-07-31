@@ -171,6 +171,23 @@ class WishlistDetailView(RetrieveDestroyAPIView):
         return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
+class WishlistMatchesView(ListAPIView):
+    serializer_class = AvailableSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        wanted = get_object_or_404(Wanted, pk=self.kwargs['pk'])
+        queryset = Available.objects.filter(variant__card=wanted.card).exclude(user=wanted.user)
+
+        if wanted.variant_id:
+            queryset = queryset.filter(variant_id=wanted.variant_id)
+
+        if wanted.finish:
+            queryset = queryset.filter(finish=wanted.finish)
+
+        return queryset.select_related('user', 'variant__card', 'variant__card_set').order_by('-id')
+
+
 class UserWishlistListView(ListAPIView):
     serializer_class = WantedSerializer
 

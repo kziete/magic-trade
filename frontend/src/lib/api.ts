@@ -107,6 +107,7 @@ export interface Wanted {
   finish: string | null;
   username: string;
   matches_count: number;
+  card_id: number;
 }
 
 export interface CreateWantedRequest {
@@ -208,6 +209,9 @@ export const cardsApi = createApi({
         return `users/${username}/wishlist/?${params.toString()}`;
       },
     }),
+    getWishlistMatches: builder.query<Available[], number>({
+      query: (wantedId) => `wishlist/${wantedId}/matches/`,
+    }),
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,
     }),
@@ -242,5 +246,6 @@ export const {
   useAddToWishlistMutation,
   useDeleteFromWishlistMutation,
   useGetUserWishlistQuery,
+  useGetWishlistMatchesQuery,
   useGetUserProfileQuery,
 } = cardsApi;

@@ -38,7 +38,7 @@ export default function CardSearch({
   const handleSelect = (value: string) => {
     const card = cards?.find((c) => c.id.toString() === value);
     if (card) {
-      router.push(`/cards/${card.id}`);
+      router.push(`/search/${card.id}`);
     }
   };
 
