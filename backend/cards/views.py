@@ -7,7 +7,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Sum, F, Value, IntegerField
+from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer
 from .services import load_inventory, LOADERS
@@ -20,6 +21,25 @@ def _annotate_fallback_image(queryset):
         .values('image')[:1]
     )
     return queryset.annotate(fallback_image=Subquery(first_variant_image))
+
+
+def _annotate_wishlist_matches(queryset):
+    # A NULL variant/finish on the Wanted side means "any" is acceptable, so
+    # Coalesce falls back to the Available row's own value to make that
+    # comparison a no-op instead of excluding rows.
+    matches = (
+        Available.objects.filter(variant__card=OuterRef('card'))
+        .exclude(user=OuterRef('user'))
+        .filter(variant=Coalesce(OuterRef('variant'), F('variant')))
+        .filter(finish=Coalesce(OuterRef('finish'), F('finish')))
+        .order_by()
+        .values('variant__card')
+        .annotate(total=Sum('quantity'))
+        .values('total')
+    )
+    return queryset.annotate(
+        matches_count=Coalesce(Subquery(matches, output_field=IntegerField()), Value(0))
+    )
 
 
 class CardListView(ListAPIView):
@@ -136,7 +156,7 @@ class WishlistListView(ListCreateAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return _annotate_fallback_image(queryset)
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -148,7 +168,7 @@ class WishlistDetailView(RetrieveDestroyAPIView):
 
     def get_queryset(self):
         queryset = Wanted.objects.filter(user=self.request.user)
-        return _annotate_fallback_image(queryset)
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
 class UserWishlistListView(ListAPIView):
@@ -164,7 +184,7 @@ class UserWishlistListView(ListAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return _annotate_fallback_image(queryset)
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
 class LatestAvailableListView(ListAPIView):

@@ -132,6 +132,13 @@ export default function WishlistGrid({
                   Sin preferencia
                 </Badge>
               )}
+              <Badge
+                size="xs"
+                variant={item.matches_count > 0 ? "filled" : "outline"}
+                color={item.matches_count > 0 ? "teal" : "gray"}
+              >
+                {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+              </Badge>
             </Group>
           </Stack>
         </Card>

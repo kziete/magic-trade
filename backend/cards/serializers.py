@@ -49,10 +49,11 @@ class WantedSerializer(serializers.ModelSerializer):
     set_name = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     username = serializers.CharField(source='user.username', read_only=True)
+    matches_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Wanted
-        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username']
+        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username', 'matches_count']
 
     def get_variant_id(self, obj):
         return obj.variant.id if obj.variant else None

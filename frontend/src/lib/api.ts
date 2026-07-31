@@ -106,6 +106,7 @@ export interface Wanted {
   image: string | null;
   finish: string | null;
   username: string;
+  matches_count: number;
 }
 
 export interface CreateWantedRequest {
