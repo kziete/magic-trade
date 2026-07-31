@@ -12,6 +12,7 @@ import {
   Loader,
   Center,
 } from "@mantine/core";
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetMeQuery, useUpdateProfileMutation } from "@/lib/authApi";
 
@@ -123,6 +124,11 @@ export default function ProfilePage() {
             value={facebookUrl}
             onChange={(e) => setFacebookUrl(e.currentTarget.value)}
           />
+
+          <Alert color="yellow" icon={<IconAlertTriangle size={18} />}>
+            Estos datos serán públicos y se usarán para contactarte, procura
+            no poner nada delicado acá.
+          </Alert>
 
           <Button onClick={handleSubmit} loading={isSaving}>
             Guardar
