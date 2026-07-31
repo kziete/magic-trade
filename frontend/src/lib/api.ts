@@ -98,6 +98,22 @@ export interface CreateAvailableRequest {
   language: string;
 }
 
+export interface Wanted {
+  id: number;
+  variant_id: number | null;
+  card_name: string;
+  set_name: string | null;
+  image: string | null;
+  finish: string | null;
+  username: string;
+}
+
+export interface CreateWantedRequest {
+  card: number;
+  variant?: number;
+  finish?: string;
+}
+
 export interface ImportInventoryResult {
   created: number;
   skipped: number;
@@ -164,6 +180,33 @@ export const cardsApi = createApi({
         return `users/${username}/inventory/?${params.toString()}`;
       },
     }),
+    getWishlist: builder.query<PaginatedResponse<Wanted>, { page?: number; query?: string }>({
+      query: ({ page = 1, query } = {}) => {
+        const params = new URLSearchParams({ page: page.toString() });
+        if (query) params.append("query", query);
+        return `wishlist/?${params.toString()}`;
+      },
+    }),
+    addToWishlist: builder.mutation<Wanted, CreateWantedRequest>({
+      query: (body) => ({
+        url: "wishlist/",
+        method: "POST",
+        body,
+      }),
+    }),
+    deleteFromWishlist: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `wishlist/${id}/`,
+        method: "DELETE",
+      }),
+    }),
+    getUserWishlist: builder.query<PaginatedResponse<Wanted>, { username: string; page: number; query?: string }>({
+      query: ({ username, page, query }) => {
+        const params = new URLSearchParams({ page: page.toString() });
+        if (query) params.append("query", query);
+        return `users/${username}/wishlist/?${params.toString()}`;
+      },
+    }),
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,
     }),
@@ -194,5 +237,9 @@ export const {
   useDeleteFromInventoryMutation,
   useGetUserInventoryQuery,
   useImportInventoryMutation,
+  useGetWishlistQuery,
+  useAddToWishlistMutation,
+  useDeleteFromWishlistMutation,
+  useGetUserWishlistQuery,
   useGetUserProfileQuery,
 } = cardsApi;

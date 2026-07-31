@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Group, Button, Text, Menu, Avatar, ActionIcon, Box } from "@mantine/core";
-import { IconUser, IconLogout, IconCards, IconUserCircle } from "@tabler/icons-react";
+import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 
 export default function Header() {
@@ -45,12 +45,24 @@ export default function Header() {
             <Button variant="subtle">Inventario</Button>
           </Link>
         </Box>
+        <Box visibleFrom="sm">
+          <Link href="/wishlist" style={{ textDecoration: "none" }}>
+            <Button variant="subtle">Wishlist</Button>
+          </Link>
+        </Box>
 
         {/* Mobile */}
         <Box hiddenFrom="sm">
           <Link href="/inventory">
             <ActionIcon variant="subtle" size="lg">
               <IconCards size={20} />
+            </ActionIcon>
+          </Link>
+        </Box>
+        <Box hiddenFrom="sm">
+          <Link href="/wishlist">
+            <ActionIcon variant="subtle" size="lg">
+              <IconHeart size={20} />
             </ActionIcon>
           </Link>
         </Box>

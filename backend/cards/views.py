@@ -7,8 +7,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Card, Variant, Available
-from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer
+from .models import Card, Variant, Available, Wanted
+from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer
 from .services import load_inventory, LOADERS
 
 
@@ -105,6 +105,53 @@ class UserInventoryListView(ListAPIView):
         query = self.request.query_params.get('query')
         if query:
             queryset = queryset.filter(variant__card__name__icontains=query)
+
+        return queryset
+
+
+class WishlistListView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return WantedCreateSerializer
+        return WantedSerializer
+
+    def get_queryset(self):
+        queryset = Wanted.objects.filter(user=self.request.user).select_related(
+            'user', 'card', 'variant__card_set'
+        ).order_by('-id')
+
+        query = self.request.query_params.get('query')
+        if query:
+            queryset = queryset.filter(card__name__icontains=query)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class WishlistDetailView(RetrieveDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = WantedSerializer
+
+    def get_queryset(self):
+        return Wanted.objects.filter(user=self.request.user)
+
+
+class UserWishlistListView(ListAPIView):
+    serializer_class = WantedSerializer
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        queryset = Wanted.objects.filter(user__username=username).select_related(
+            'user', 'card', 'variant__card_set'
+        ).order_by('-id')
+
+        query = self.request.query_params.get('query')
+        if query:
+            queryset = queryset.filter(card__name__icontains=query)
 
         return queryset
 

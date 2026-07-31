@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Card, Variant, Available
+from .models import Card, Variant, Available, Wanted
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -41,3 +41,30 @@ class AvailableCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Available
         fields = ['variant', 'finish', 'condition', 'language']
+
+
+class WantedSerializer(serializers.ModelSerializer):
+    card_name = serializers.CharField(source='card.name', read_only=True)
+    variant_id = serializers.SerializerMethodField()
+    set_name = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = Wanted
+        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username']
+
+    def get_variant_id(self, obj):
+        return obj.variant.id if obj.variant else None
+
+    def get_set_name(self, obj):
+        return obj.variant.card_set.name if obj.variant else None
+
+    def get_image(self, obj):
+        return obj.variant.image if obj.variant else None
+
+
+class WantedCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wanted
+        fields = ['card', 'variant', 'finish']

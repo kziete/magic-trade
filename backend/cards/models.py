@@ -71,5 +71,5 @@ class Available(models.Model):
 class Wanted(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
-    variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
-    finish = models.CharField(max_length=10, choices=Finish.choices)
+    variant = models.ForeignKey(Variant, on_delete=models.PROTECT, null=True, blank=True)
+    finish = models.CharField(max_length=10, choices=Finish.choices, null=True, blank=True)

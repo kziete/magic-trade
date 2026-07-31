@@ -22,4 +22,9 @@ class AvailableAdmin(admin.ModelAdmin):
     raw_id_fields = ["variant", "user"]
 
 
+@admin.register(models.Wanted)
+class WantedAdmin(admin.ModelAdmin):
+    raw_id_fields = ["card", "variant", "user"]
+
+
 # Register your models here.
