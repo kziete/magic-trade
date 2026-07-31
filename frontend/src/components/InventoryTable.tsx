@@ -7,8 +7,10 @@ import {
   Center,
   Text,
   ActionIcon,
+  Anchor,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import Link from "next/link";
 import { Available } from "@/lib/api";
 
 interface InventoryTableProps {
@@ -59,6 +61,7 @@ export default function InventoryTable({
           <Table.Th>Finish</Table.Th>
           <Table.Th>Condicion</Table.Th>
           <Table.Th>Idioma</Table.Th>
+          <Table.Th>Buscan</Table.Th>
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
       </Table.Thead>
@@ -81,6 +84,23 @@ export default function InventoryTable({
             </Table.Td>
             <Table.Td>
               <Badge size="sm" color="grape">{item.language}</Badge>
+            </Table.Td>
+            <Table.Td>
+              {item.wanted_count > 0 ? (
+                <Anchor
+                  component={Link}
+                  href={`/cards/${item.card_id}?available=${item.id}`}
+                  underline="never"
+                >
+                  <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                    {item.wanted_count}
+                  </Badge>
+                </Anchor>
+              ) : (
+                <Badge size="sm" variant="outline" color="gray">
+                  {item.wanted_count}
+                </Badge>
+              )}
             </Table.Td>
             {onDelete && (
               <Table.Td>

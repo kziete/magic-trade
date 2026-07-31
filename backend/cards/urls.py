@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CardListView, CardDetailView, VariantListView, AvailableListView, InventoryListView, InventoryDetailView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView
+from .views import CardListView, CardDetailView, VariantListView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView
 
 urlpatterns = [
     path('cards/', CardListView.as_view()),
@@ -9,6 +9,7 @@ urlpatterns = [
     path('available/latest/', LatestAvailableListView.as_view()),
     path('inventory/', InventoryListView.as_view()),
     path('inventory/<int:pk>/', InventoryDetailView.as_view()),
+    path('inventory/<int:pk>/wanted/', AvailableWantedByView.as_view()),
     path('inventory/import/', InventoryImportView.as_view()),
     path('wishlist/', WishlistListView.as_view()),
     path('wishlist/<int:pk>/', WishlistDetailView.as_view()),

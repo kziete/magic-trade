@@ -57,6 +57,7 @@ export interface Card {
 
 export interface Available {
   id: number;
+  card_id: number;
   variant_id: number;
   card_name: string;
   set_name: string;
@@ -65,6 +66,7 @@ export interface Available {
   condition: string;
   language: string;
   username: string;
+  wanted_count: number;
 }
 
 export interface Variant {
@@ -175,6 +177,9 @@ export const cardsApi = createApi({
         method: "DELETE",
       }),
     }),
+    getInventoryWantedBy: builder.query<Wanted[], number>({
+      query: (availableId) => `inventory/${availableId}/wanted/`,
+    }),
     getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number; query?: string }>({
       query: ({ username, page, query }) => {
         const params = new URLSearchParams({ page: page.toString() });
@@ -240,6 +245,7 @@ export const {
   useGetInventoryQuery,
   useAddToInventoryMutation,
   useDeleteFromInventoryMutation,
+  useGetInventoryWantedByQuery,
   useGetUserInventoryQuery,
   useImportInventoryMutation,
   useGetWishlistQuery,

@@ -7,7 +7,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import OuterRef, Subquery, Sum, F, Value, IntegerField
+from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField
 from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer
@@ -39,6 +39,25 @@ def _annotate_wishlist_matches(queryset):
     )
     return queryset.annotate(
         matches_count=Coalesce(Subquery(matches, output_field=IntegerField()), Value(0))
+    )
+
+
+def _annotate_available_wanted_by(queryset):
+    # Unlike _annotate_wishlist_matches, the nullable variant/finish live on
+    # the side being filtered here (Wanted), so Coalesce can't help (NULL =
+    # anything is never TRUE in SQL) — an explicit isnull OR match is needed.
+    wanted_matches = (
+        Wanted.objects.filter(card=OuterRef('variant__card'))
+        .exclude(user=OuterRef('user'))
+        .filter(Q(variant__isnull=True) | Q(variant=OuterRef('variant')))
+        .filter(Q(finish__isnull=True) | Q(finish=OuterRef('finish')))
+        .order_by()
+        .values('card')
+        .annotate(total=Count('user', distinct=True))
+        .values('total')
+    )
+    return queryset.annotate(
+        wanted_count=Coalesce(Subquery(wanted_matches, output_field=IntegerField()), Value(0))
     )
 
 
@@ -109,7 +128,7 @@ class InventoryListView(ListCreateAPIView):
         if query:
             queryset = queryset.filter(variant__card__name__icontains=query)
 
-        return queryset
+        return _annotate_available_wanted_by(queryset)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -186,6 +205,23 @@ class WishlistMatchesView(ListAPIView):
             queryset = queryset.filter(finish=wanted.finish)
 
         return queryset.select_related('user', 'variant__card', 'variant__card_set').order_by('-id')
+
+
+class AvailableWantedByView(ListAPIView):
+    serializer_class = WantedSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        available = get_object_or_404(Available, pk=self.kwargs['pk'])
+        queryset = (
+            Wanted.objects.filter(card=available.variant.card)
+            .exclude(user=available.user)
+            .filter(Q(variant__isnull=True) | Q(variant_id=available.variant_id))
+            .filter(Q(finish__isnull=True) | Q(finish=available.finish))
+            .select_related('user', 'card', 'variant__card_set')
+            .order_by('-id')
+        )
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
 class UserWishlistListView(ListAPIView):

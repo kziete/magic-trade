@@ -27,14 +27,16 @@ class VariantSerializer(serializers.ModelSerializer):
 
 class AvailableSerializer(serializers.ModelSerializer):
     variant_id = serializers.IntegerField(source='variant.id', read_only=True)
+    card_id = serializers.IntegerField(source='variant.card_id', read_only=True)
     card_name = serializers.CharField(source='variant.card.name', read_only=True)
     set_name = serializers.CharField(source='variant.card_set.name', read_only=True)
     image = serializers.CharField(source='variant.image', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
+    wanted_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Available
-        fields = ['id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username']
+        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username', 'wanted_count']
 
 
 class AvailableCreateSerializer(serializers.ModelSerializer):
