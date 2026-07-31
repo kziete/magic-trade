@@ -12,9 +12,10 @@ import {
   Group,
   Button,
   TextInput,
+  Tooltip,
 } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
-import { IconPlus, IconUpload, IconSearch } from "@tabler/icons-react";
+import { useDebouncedValue, useClipboard } from "@mantine/hooks";
+import { IconPlus, IconUpload, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
@@ -35,6 +36,7 @@ function InventoryPageContent() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const isFirstRender = useRef(true);
+  const clipboard = useClipboard({ timeout: 2000 });
 
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -96,6 +98,10 @@ function InventoryPageContent() {
     router.push(`/inventory?page=${newPage}`);
   };
 
+  const handleShare = () => {
+    clipboard.copy(`${window.location.origin}/inventory/${user?.username}`);
+  };
+
   if (authLoading || !user) {
     return (
       <Container size="lg" py="xl">
@@ -113,6 +119,11 @@ function InventoryPageContent() {
           <Title order={1}>Mi Inventario</Title>
           <Group gap="sm">
             <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
+            <Tooltip label="¡URL copiada al portapapeles!" opened={clipboard.copied} position="bottom" withArrow>
+              <Button variant="light" leftSection={<IconShare size={16} />} onClick={handleShare}>
+                Compartir
+              </Button>
+            </Tooltip>
             <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportPanelOpened(true)}>
               Importar
             </Button>
