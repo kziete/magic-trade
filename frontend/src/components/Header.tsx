@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/AuthProvider";
 export default function Header() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const displayName = user ? `${user.first_name} ${user.last_name}`.trim() || user.username : "";
+  const displayName = user?.username ?? "";
 
   const handleLogout = () => {
     logout();
