@@ -7,9 +7,19 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import OuterRef, Subquery
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer
 from .services import load_inventory, LOADERS
+
+
+def _annotate_fallback_image(queryset):
+    first_variant_image = (
+        Variant.objects.filter(card=OuterRef('card'))
+        .order_by('id')
+        .values('image')[:1]
+    )
+    return queryset.annotate(fallback_image=Subquery(first_variant_image))
 
 
 class CardListView(ListAPIView):
@@ -126,7 +136,7 @@ class WishlistListView(ListCreateAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return queryset
+        return _annotate_fallback_image(queryset)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -137,7 +147,8 @@ class WishlistDetailView(RetrieveDestroyAPIView):
     serializer_class = WantedSerializer
 
     def get_queryset(self):
-        return Wanted.objects.filter(user=self.request.user)
+        queryset = Wanted.objects.filter(user=self.request.user)
+        return _annotate_fallback_image(queryset)
 
 
 class UserWishlistListView(ListAPIView):
@@ -153,7 +164,7 @@ class UserWishlistListView(ListAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return queryset
+        return _annotate_fallback_image(queryset)
 
 
 class LatestAvailableListView(ListAPIView):

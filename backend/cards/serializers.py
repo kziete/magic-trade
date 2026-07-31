@@ -61,7 +61,7 @@ class WantedSerializer(serializers.ModelSerializer):
         return obj.variant.card_set.name if obj.variant else None
 
     def get_image(self, obj):
-        return obj.variant.image if obj.variant else None
+        return obj.variant.image if obj.variant else obj.fallback_image
 
 
 class WantedCreateSerializer(serializers.ModelSerializer):
