@@ -1,17 +1,20 @@
 "use client";
 
-import { Card, Stack, Avatar, Text, Divider, Group, Anchor } from "@mantine/core";
-import { IconUser, IconPhone, IconMail, IconBrandFacebook } from "@tabler/icons-react";
-import { UserProfile } from "@/lib/api";
+import { useState } from "react";
+import { Card, Stack, Avatar, Text, Button } from "@mantine/core";
+import { IconUser, IconMessageCircle } from "@tabler/icons-react";
+import { useAuth } from "@/lib/AuthProvider";
+import ContactUserPanel from "@/components/ContactUserPanel";
 
 interface UserProfileSidebarProps {
   username: string;
-  profile?: UserProfile;
 }
 
-export default function UserProfileSidebar({ username, profile }: UserProfileSidebarProps) {
-  const hasContactInfo =
-    profile && (profile.phone || profile.contact_email || profile.facebook_url);
+export default function UserProfileSidebar({ username }: UserProfileSidebarProps) {
+  const { user } = useAuth();
+  const [contactOpened, setContactOpened] = useState(false);
+
+  const canContact = !!user && user.username !== username;
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -23,39 +26,23 @@ export default function UserProfileSidebar({ username, profile }: UserProfileSid
           {username}
         </Text>
 
-        {hasContactInfo && (
-          <>
-            <Divider w="100%" />
-            <Stack gap="xs" w="100%">
-              {profile.phone && (
-                <Group gap={6} wrap="nowrap">
-                  <IconPhone size={16} />
-                  <Text size="sm">{profile.phone}</Text>
-                </Group>
-              )}
-              {profile.contact_email && (
-                <Group gap={6} wrap="nowrap">
-                  <IconMail size={16} />
-                  <Text size="sm">{profile.contact_email}</Text>
-                </Group>
-              )}
-              {profile.facebook_url && (
-                <Group gap={6} wrap="nowrap">
-                  <IconBrandFacebook size={16} />
-                  <Anchor
-                    href={profile.facebook_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="sm"
-                  >
-                    Facebook
-                  </Anchor>
-                </Group>
-              )}
-            </Stack>
-          </>
+        {canContact && (
+          <Button
+            variant="light"
+            leftSection={<IconMessageCircle size={16} />}
+            onClick={() => setContactOpened(true)}
+            fullWidth
+          >
+            Contactar
+          </Button>
         )}
       </Stack>
+
+      <ContactUserPanel
+        username={username}
+        opened={contactOpened}
+        onClose={() => setContactOpened(false)}
+      />
     </Card>
   );
 }

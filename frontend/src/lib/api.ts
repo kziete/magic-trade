@@ -126,9 +126,6 @@ export interface ImportInventoryResult {
 
 export interface UserProfile {
   username: string;
-  phone: string | null;
-  contact_email: string | null;
-  facebook_url: string | null;
 }
 
 export const cardsApi = createApi({
@@ -220,6 +217,13 @@ export const cardsApi = createApi({
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,
     }),
+    contactUser: builder.mutation<void, { username: string; message?: string }>({
+      query: ({ username, message }) => ({
+        url: `users/${username}/contact/`,
+        method: "POST",
+        body: { message },
+      }),
+    }),
     importInventory: builder.mutation<ImportInventoryResult, { file: File; format: string; clear: boolean }>({
       query: ({ file, format, clear }) => {
         const formData = new FormData();
@@ -254,4 +258,5 @@ export const {
   useGetUserWishlistQuery,
   useGetWishlistMatchesQuery,
   useGetUserProfileQuery,
+  useContactUserMutation,
 } = cardsApi;

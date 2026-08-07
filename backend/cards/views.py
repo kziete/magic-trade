@@ -10,7 +10,7 @@ from rest_framework import status
 from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField
 from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
-from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer
+from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
 from .services import load_inventory, LOADERS
 
 
@@ -254,13 +254,29 @@ class LatestAvailableListView(ListAPIView):
 class UserProfileView(APIView):
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
-        profile = getattr(user, 'profile', None)
         return Response({
             'username': user.username,
-            'phone': profile.phone if profile else None,
-            'contact_email': profile.contact_email if profile else None,
-            'facebook_url': profile.facebook_url if profile else None,
         })
+
+
+class ContactUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        target_user = get_object_or_404(User, username=username)
+        if target_user == request.user:
+            return Response(
+                {'error': 'No podés contactarte a vos mismo'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = ContactUserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # TODO: enviar el mensaje + datos de contacto de request.user al
+        # target_user (email, notificación, etc). Por ahora es un stub.
+
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class InventoryImportView(APIView):

@@ -17,7 +17,7 @@ export default function UserProfileLayout({ children }: { children: ReactNode })
   const username = params.username as string;
   const active = getActiveTab(pathname);
 
-  const { data: profile, isLoading, error } = useGetUserProfileQuery(username);
+  const { isLoading, error } = useGetUserProfileQuery(username);
 
   if (isLoading) {
     return (
@@ -43,7 +43,7 @@ export default function UserProfileLayout({ children }: { children: ReactNode })
     <Container size="lg" py="xl">
       <Grid gutter="lg">
         <Grid.Col span={{ base: 12, md: 3 }}>
-          <UserProfileSidebar username={username} profile={profile} />
+          <UserProfileSidebar username={username} />
         </Grid.Col>
 
         <Grid.Col span={{ base: 12, md: 9 }}>
