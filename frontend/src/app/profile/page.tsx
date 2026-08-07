@@ -12,7 +12,7 @@ import {
   Loader,
   Center,
 } from "@mantine/core";
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetMeQuery, useUpdateProfileMutation } from "@/lib/authApi";
 import { loginRoute } from "@/lib/routes";
@@ -92,7 +92,7 @@ export default function ProfilePage() {
   return (
     <Container size="xs" py="xl">
       <Stack gap="lg">
-        <Title order={1}>Mi perfil</Title>
+        <Title order={1}>Datos de contacto</Title>
 
         <Stack gap="md">
           {error && <Alert color="red">{error}</Alert>}
@@ -127,9 +127,8 @@ export default function ProfilePage() {
             onChange={(e) => setFacebookUrl(e.currentTarget.value)}
           />
 
-          <Alert color="yellow" icon={<IconAlertTriangle size={18} />}>
-            Estos datos serán públicos y se usarán para contactarte, procura
-            no poner nada delicado aquí.
+          <Alert color="blue" icon={<IconInfoCircle size={18} />}>
+            Estos datos se enviarán cuando intentes contactar a alguien.
           </Alert>
 
           <Button onClick={handleSubmit} loading={isSaving}>

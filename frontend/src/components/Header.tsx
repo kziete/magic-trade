@@ -97,7 +97,7 @@ export default function Header() {
                         href="/profile"
                         leftSection={<IconUserCircle size={16} />}
                       >
-                        Mi perfil
+                        Datos de contacto
                       </Menu.Item>
                       <Menu.Item
                         leftSection={<IconLogout size={16} />}
@@ -134,7 +134,7 @@ export default function Header() {
                         href="/profile"
                         leftSection={<IconUserCircle size={16} />}
                       >
-                        Mi perfil
+                        Datos de contacto
                       </Menu.Item>
                       <Menu.Item
                         leftSection={<IconLogout size={16} />}
