@@ -52,17 +52,46 @@ echo "==> Building new images (old containers keep serving traffic during this s
 # frontend one at a time (not in the same `build` call) so their resource
 # usage doesn't stack, and run under `nice`/`ionice` so the build yields CPU
 # and disk I/O priority to the containers actually serving traffic.
-# Override DEPLOY_BUILD_MEMORY if your droplet needs a different cap.
 export DOCKER_BUILDKIT=0
 export COMPOSE_DOCKER_CLI_BUILD=0
-BUILD_MEMORY="${DEPLOY_BUILD_MEMORY:-1g}"
+
+# Size each service's cap off currently-available host memory (MemAvailable
+# already accounts for what the live containers are using, unlike MemTotal)
+# so this adapts if the droplet is ever resized instead of relying on a
+# guessed constant. The frontend needs meaningfully more than the backend:
+# `next build`'s TypeScript-check phase got SIGKILLed by the kernel OOM
+# killer at a flat 1g cap even though the backend's `pip install` comfortably
+# fit in that same 1g, so frontend gets a bigger share AND a higher floor.
+# Override with DEPLOY_BUILD_MEMORY_WEB_MB / DEPLOY_BUILD_MEMORY_FRONTEND_MB
+# (plain megabyte numbers) if your droplet needs different values.
+AVAILABLE_MB="$(awk '/MemAvailable/ {print int($2/1024); exit}' /proc/meminfo 2>/dev/null || echo 0)"
+if [ "$AVAILABLE_MB" -gt 0 ]; then
+  WEB_MEMORY_MB="${DEPLOY_BUILD_MEMORY_WEB_MB:-$(( AVAILABLE_MB * 30 / 100 ))}"
+  FRONTEND_MEMORY_MB="${DEPLOY_BUILD_MEMORY_FRONTEND_MB:-$(( AVAILABLE_MB * 60 / 100 ))}"
+else
+  WEB_MEMORY_MB="${DEPLOY_BUILD_MEMORY_WEB_MB:-1024}"
+  FRONTEND_MEMORY_MB="${DEPLOY_BUILD_MEMORY_FRONTEND_MB:-2048}"
+fi
+if [ "$FRONTEND_MEMORY_MB" -lt 2048 ]; then
+  FRONTEND_MEMORY_MB=2048
+  echo "    (warning: available memory is tight for a Next.js build; forcing the frontend cap to ${FRONTEND_MEMORY_MB}m anyway -- if it still OOMs, this droplet needs more RAM or swap)"
+fi
+echo "    (build memory caps: web=${WEB_MEMORY_MB}m frontend=${FRONTEND_MEMORY_MB}m)"
+
+# V8 sizes its default heap off total *host* memory, not this container's
+# cgroup limit, so left unconstrained it can try to grow past our --memory
+# cap regardless of what we set that cap to. Pin it explicitly, comfortably
+# under the cap to leave room for Node/npm/OS overhead (see frontend/Dockerfile).
+FRONTEND_NODE_OLD_SPACE_MB=$(( FRONTEND_MEMORY_MB * 75 / 100 ))
+
 THROTTLE=(nice -n 19)
 if command -v ionice >/dev/null 2>&1; then
   THROTTLE=(ionice -c2 -n7 "${THROTTLE[@]}")
 fi
-for service in web frontend; do
-  "${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "$BUILD_MEMORY" "$service"
-done
+
+"${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "${WEB_MEMORY_MB}m" web
+"${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "${FRONTEND_MEMORY_MB}m" \
+  --build-arg "NODE_OPTIONS=--max-old-space-size=${FRONTEND_NODE_OLD_SPACE_MB}" frontend
 
 echo "==> Rolling out web..."
 docker rollout -f "$COMPOSE_FILE" web -t 40
