@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Container,
   Title,
@@ -18,7 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetWishlistQuery, useDeleteFromWishlistMutation } from "@/lib/api";
-import { userProfileRoutes } from "@/lib/routes";
+import { userProfileRoutes, loginRoute } from "@/lib/routes";
 import AddWantedPanel from "@/components/AddWantedPanel";
 import WishlistTable from "@/components/WishlistTable";
 import WishlistGrid from "@/components/WishlistGrid";
@@ -28,6 +28,7 @@ const VIEW_MODE_KEY = "wishlist-view-mode";
 
 function WishlistPageContent() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const [panelOpened, setPanelOpened] = useState(false);
@@ -89,9 +90,10 @@ function WishlistPageContent() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      const query = searchParams.toString();
+      router.push(loginRoute(query ? `${pathname}?${query}` : pathname));
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, router, pathname, searchParams]);
 
   const handlePageChange = (newPage: number) => {
     router.push(`/wishlist?page=${newPage}`);

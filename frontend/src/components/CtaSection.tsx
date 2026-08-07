@@ -3,7 +3,7 @@
 import { ComponentType } from "react";
 import Link from "next/link";
 import { SimpleGrid, Card, Stack, Title, Text, Button } from "@mantine/core";
-import { IconUpload } from "@tabler/icons-react";
+import { IconUpload, IconBellPlus } from "@tabler/icons-react";
 
 interface CtaItem {
   id: string;
@@ -22,6 +22,14 @@ const CTA_ITEMS: CtaItem[] = [
     buttonLabel: "Subir mis cartas",
     href: "/inventory",
     icon: IconUpload,
+  },
+  {
+    id: "register-wanted",
+    title: "Registrá lo que buscás",
+    description: "Te avisaremos cuando aparezca disponible.",
+    buttonLabel: "Crear alerta",
+    href: "/wishlist",
+    icon: IconBellPlus,
   },
 ];
 

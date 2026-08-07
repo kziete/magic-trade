@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Container, Loader, Center, Alert, Stack, Text } from "@mantine/core";
 import { useGoogleLoginMutation } from "@/lib/authApi";
 import { useAuth } from "@/lib/AuthProvider";
+import { sanitizeRedirectPath } from "@/lib/routes";
 
 function GoogleCallbackContent() {
   const router = useRouter();
@@ -32,7 +33,7 @@ function GoogleCallbackContent() {
       const result = await googleLogin({ code }).unwrap();
       localStorage.setItem("refreshToken", result.refresh);
       login(result.access);
-      router.push("/");
+      router.push(sanitizeRedirectPath(searchParams.get("state")));
     } catch {
       setError("Error al iniciar sesión con Google");
     }
