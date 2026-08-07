@@ -23,13 +23,11 @@ import {
 interface AddInventoryPanelProps {
   opened: boolean;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
 export default function AddInventoryPanel({
   opened,
   onClose,
-  onSuccess,
 }: AddInventoryPanelProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
@@ -140,10 +138,8 @@ export default function AddInventoryPanel({
         setSelectedVariant(null);
         setSelectedFinish(null);
         setSelectedCondition(null);
-        onSuccess();
       } else {
         resetForm();
-        onSuccess();
         onClose();
       }
     } catch {

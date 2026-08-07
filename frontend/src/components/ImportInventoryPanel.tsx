@@ -20,13 +20,11 @@ import { useImportInventoryMutation, ImportInventoryResult } from "@/lib/api";
 interface ImportInventoryPanelProps {
   opened: boolean;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
 export default function ImportInventoryPanel({
   opened,
   onClose,
-  onSuccess,
 }: ImportInventoryPanelProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [format, setFormat] = useState<string>("moxfield");
@@ -103,9 +101,6 @@ export default function ImportInventoryPanel({
       }).unwrap();
 
       setResult(importResult);
-      if (importResult.created > 0) {
-        onSuccess();
-      }
     } catch {
       setError("Error al importar el inventario");
     }

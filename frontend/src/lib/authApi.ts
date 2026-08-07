@@ -94,6 +94,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["Me"],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -125,6 +126,7 @@ export const authApi = createApi({
     }),
     getMe: builder.query<User, void>({
       query: () => "me/",
+      providesTags: ["Me"],
     }),
     updateProfile: builder.mutation<User, UpdateProfileRequest>({
       query: (body) => ({
@@ -132,6 +134,7 @@ export const authApi = createApi({
         method: "PATCH",
         body,
       }),
+      invalidatesTags: ["Me"],
     }),
   }),
 });

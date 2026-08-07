@@ -68,7 +68,6 @@ function WishlistPageContent() {
     data: wishlistData,
     isLoading,
     error,
-    refetch,
   } = useGetWishlistQuery(
     { page, query: debouncedSearch || undefined },
     { skip: !user }
@@ -91,7 +90,6 @@ function WishlistPageContent() {
   const handleDelete = async (id: number, cardName: string) => {
     if (confirm(`¿Eliminar "${cardName}" de la wishlist?`)) {
       await deleteFromWishlist(id);
-      refetch();
     }
   };
 
@@ -183,7 +181,6 @@ function WishlistPageContent() {
         <AddWantedPanel
           opened={panelOpened}
           onClose={() => setPanelOpened(false)}
-          onSuccess={refetch}
         />
       </Stack>
     </Container>

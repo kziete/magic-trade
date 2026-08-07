@@ -23,13 +23,11 @@ import {
 interface AddWantedPanelProps {
   opened: boolean;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
 export default function AddWantedPanel({
   opened,
   onClose,
-  onSuccess,
 }: AddWantedPanelProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
@@ -133,10 +131,8 @@ export default function AddWantedPanel({
         setSelectedCardId(null);
         setSelectedVariant(null);
         setSelectedFinish(null);
-        onSuccess();
       } else {
         resetForm();
-        onSuccess();
         onClose();
       }
     } catch {

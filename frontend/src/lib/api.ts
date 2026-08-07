@@ -131,6 +131,7 @@ export interface UserProfile {
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["Inventory", "Wishlist", "Available", "Wanted", "UserProfile"],
   endpoints: (builder) => ({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
@@ -150,9 +151,11 @@ export const cardsApi = createApi({
         const queryString = params.toString();
         return `cards/${cardId}/available/${queryString ? `?${queryString}` : ""}`;
       },
+      providesTags: ["Available"],
     }),
     getLatestAvailable: builder.query<Available[], void>({
       query: () => "available/latest/",
+      providesTags: ["Available"],
     }),
     getInventory: builder.query<PaginatedResponse<Available>, { page?: number; query?: string }>({
       query: ({ page = 1, query } = {}) => {
@@ -160,6 +163,7 @@ export const cardsApi = createApi({
         if (query) params.append("query", query);
         return `inventory/?${params.toString()}`;
       },
+      providesTags: ["Inventory"],
     }),
     addToInventory: builder.mutation<Available, CreateAvailableRequest>({
       query: (body) => ({
@@ -167,15 +171,18 @@ export const cardsApi = createApi({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["Inventory", "Available", "Wanted"],
     }),
     deleteFromInventory: builder.mutation<void, number>({
       query: (id) => ({
         url: `inventory/${id}/`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Inventory", "Available", "Wanted"],
     }),
     getInventoryWantedBy: builder.query<Wanted[], number>({
       query: (availableId) => `inventory/${availableId}/wanted/`,
+      providesTags: ["Wanted"],
     }),
     getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number; query?: string }>({
       query: ({ username, page, query }) => {
@@ -183,6 +190,7 @@ export const cardsApi = createApi({
         if (query) params.append("query", query);
         return `users/${username}/inventory/?${params.toString()}`;
       },
+      providesTags: ["Inventory"],
     }),
     getWishlist: builder.query<PaginatedResponse<Wanted>, { page?: number; query?: string }>({
       query: ({ page = 1, query } = {}) => {
@@ -190,6 +198,7 @@ export const cardsApi = createApi({
         if (query) params.append("query", query);
         return `wishlist/?${params.toString()}`;
       },
+      providesTags: ["Wishlist"],
     }),
     addToWishlist: builder.mutation<Wanted, CreateWantedRequest>({
       query: (body) => ({
@@ -197,12 +206,14 @@ export const cardsApi = createApi({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["Wishlist", "Available", "Wanted"],
     }),
     deleteFromWishlist: builder.mutation<void, number>({
       query: (id) => ({
         url: `wishlist/${id}/`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Wishlist", "Available", "Wanted"],
     }),
     getUserWishlist: builder.query<PaginatedResponse<Wanted>, { username: string; page: number; query?: string }>({
       query: ({ username, page, query }) => {
@@ -210,18 +221,23 @@ export const cardsApi = createApi({
         if (query) params.append("query", query);
         return `users/${username}/wishlist/?${params.toString()}`;
       },
+      providesTags: ["Wishlist"],
     }),
     getWishlistMatches: builder.query<Available[], number>({
       query: (wantedId) => `wishlist/${wantedId}/matches/`,
+      providesTags: ["Available"],
     }),
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,
+      providesTags: ["UserProfile"],
     }),
     getUserMatchesAvailable: builder.query<Available[], string>({
       query: (username) => `users/${username}/matches/available/`,
+      providesTags: ["Available"],
     }),
     getUserMatchesWanted: builder.query<Wanted[], string>({
       query: (username) => `users/${username}/matches/wanted/`,
+      providesTags: ["Wanted"],
     }),
     contactUser: builder.mutation<void, { username: string; message?: string }>({
       query: ({ username, message }) => ({
@@ -242,6 +258,7 @@ export const cardsApi = createApi({
           body: formData,
         };
       },
+      invalidatesTags: ["Inventory", "Available", "Wanted"],
     }),
   }),
 });

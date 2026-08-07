@@ -70,7 +70,6 @@ function InventoryPageContent() {
     data: inventoryData,
     isLoading,
     error,
-    refetch,
   } = useGetInventoryQuery(
     { page, query: debouncedSearch || undefined },
     { skip: !user }
@@ -93,7 +92,6 @@ function InventoryPageContent() {
   const handleDelete = async (id: number, cardName: string) => {
     if (confirm(`¿Eliminar "${cardName}" del inventario?`)) {
       await deleteFromInventory(id);
-      refetch();
     }
   };
 
@@ -188,13 +186,11 @@ function InventoryPageContent() {
         <AddInventoryPanel
           opened={panelOpened}
           onClose={() => setPanelOpened(false)}
-          onSuccess={refetch}
         />
 
         <ImportInventoryPanel
           opened={importPanelOpened}
           onClose={() => setImportPanelOpened(false)}
-          onSuccess={refetch}
         />
       </Stack>
     </Container>
