@@ -14,18 +14,20 @@ export default function UserMatchesPage() {
   const pathname = usePathname();
   const params = useParams();
   const username = params.username as string;
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isLoggingOut } = useAuth();
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push(loginRoute(pathname));
+      if (!isLoggingOut()) {
+        router.push(loginRoute(pathname));
+      }
       return;
     }
     if (user.username === username) {
       router.push(userProfileRoutes.inventory(username));
     }
-  }, [authLoading, user, username, router, pathname]);
+  }, [authLoading, user, username, router, pathname, isLoggingOut]);
 
   const skip = authLoading || !user || user.username === username;
 

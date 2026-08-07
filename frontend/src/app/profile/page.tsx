@@ -20,7 +20,7 @@ import { loginRoute } from "@/lib/routes";
 export default function ProfilePage() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user: authUser, isLoading: authLoading } = useAuth();
+  const { user: authUser, isLoading: authLoading, isLoggingOut } = useAuth();
 
   const { data: me, isLoading: meLoading } = useGetMeQuery(undefined, {
     skip: !authUser,
@@ -35,10 +35,10 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !authUser) {
+    if (!authLoading && !authUser && !isLoggingOut()) {
       router.push(loginRoute(pathname));
     }
-  }, [authLoading, authUser, router, pathname]);
+  }, [authLoading, authUser, router, pathname, isLoggingOut]);
 
   useEffect(() => {
     if (me) {

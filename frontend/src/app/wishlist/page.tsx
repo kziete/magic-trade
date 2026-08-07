@@ -30,7 +30,7 @@ function WishlistPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isLoggingOut } = useAuth();
   const [panelOpened, setPanelOpened] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
@@ -89,11 +89,11 @@ function WishlistPageContent() {
     : 1;
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isLoggingOut()) {
       const query = searchParams.toString();
       router.push(loginRoute(query ? `${pathname}?${query}` : pathname));
     }
-  }, [authLoading, user, router, pathname, searchParams]);
+  }, [authLoading, user, router, pathname, searchParams, isLoggingOut]);
 
   const handlePageChange = (newPage: number) => {
     router.push(`/wishlist?page=${newPage}`);
