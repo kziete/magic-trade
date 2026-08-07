@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { Tabs } from "@mantine/core";
-import { IconCards, IconHeart } from "@tabler/icons-react";
+import { IconCards, IconHeart, IconArrowsExchange } from "@tabler/icons-react";
+import { useAuth } from "@/lib/AuthProvider";
 import { userProfileRoutes } from "@/lib/routes";
 
-export type ProfileTab = "inventory" | "wishlist";
+export type ProfileTab = "inventory" | "wishlist" | "matches";
 
 interface UserProfileTabsProps {
   username: string;
@@ -13,6 +14,9 @@ interface UserProfileTabsProps {
 }
 
 export default function UserProfileTabs({ username, active }: UserProfileTabsProps) {
+  const { user } = useAuth();
+  const showMatches = !!user && user.username !== username;
+
   return (
     <Tabs value={active}>
       <Tabs.List>
@@ -30,6 +34,15 @@ export default function UserProfileTabs({ username, active }: UserProfileTabsPro
         >
           Wishlist
         </Tabs.Tab>
+        {showMatches && (
+          <Tabs.Tab
+            value="matches"
+            leftSection={<IconArrowsExchange size={16} />}
+            renderRoot={(props) => <Link href={userProfileRoutes.matches(username)} {...props} />}
+          >
+            Matches
+          </Tabs.Tab>
+        )}
       </Tabs.List>
     </Tabs>
   );

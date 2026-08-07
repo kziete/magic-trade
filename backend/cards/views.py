@@ -7,7 +7,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField
+from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField, Exists
 from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
@@ -277,6 +277,60 @@ class ContactUserView(APIView):
         # target_user (email, notificación, etc). Por ahora es un stub.
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+class UserMatchesAvailableView(ListAPIView):
+    """Cartas que <username> TIENE y que el usuario autenticado BUSCA."""
+    serializer_class = AvailableSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        viewer = self.request.user
+        matching_wanted = Wanted.objects.filter(
+            user=viewer,
+            card=OuterRef('variant__card'),
+        ).filter(
+            Q(variant__isnull=True) | Q(variant=OuterRef('variant'))
+        ).filter(
+            Q(finish__isnull=True) | Q(finish=OuterRef('finish'))
+        )
+        queryset = (
+            Available.objects.filter(user__username=username)
+            .exclude(user=viewer)
+            .filter(Exists(matching_wanted))
+            .select_related('user', 'variant__card', 'variant__card_set')
+            .order_by('-id')
+        )
+        return _annotate_available_wanted_by(queryset)
+
+
+class UserMatchesWantedView(ListAPIView):
+    """Cartas que <username> BUSCA y que el usuario autenticado TIENE."""
+    serializer_class = WantedSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        viewer = self.request.user
+        matching_available = Available.objects.filter(
+            user=viewer,
+            variant__card=OuterRef('card'),
+        ).filter(
+            variant=Coalesce(OuterRef('variant'), F('variant'))
+        ).filter(
+            finish=Coalesce(OuterRef('finish'), F('finish'))
+        )
+        queryset = (
+            Wanted.objects.filter(user__username=username)
+            .exclude(user=viewer)
+            .filter(Exists(matching_available))
+            .select_related('user', 'card', 'variant__card_set')
+            .order_by('-id')
+        )
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
 class InventoryImportView(APIView):

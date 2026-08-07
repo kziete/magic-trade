@@ -217,6 +217,12 @@ export const cardsApi = createApi({
     getUserProfile: builder.query<UserProfile, string>({
       query: (username) => `users/${username}/`,
     }),
+    getUserMatchesAvailable: builder.query<Available[], string>({
+      query: (username) => `users/${username}/matches/available/`,
+    }),
+    getUserMatchesWanted: builder.query<Wanted[], string>({
+      query: (username) => `users/${username}/matches/wanted/`,
+    }),
     contactUser: builder.mutation<void, { username: string; message?: string }>({
       query: ({ username, message }) => ({
         url: `users/${username}/contact/`,
@@ -259,4 +265,6 @@ export const {
   useGetWishlistMatchesQuery,
   useGetUserProfileQuery,
   useContactUserMutation,
+  useGetUserMatchesAvailableQuery,
+  useGetUserMatchesWantedQuery,
 } = cardsApi;

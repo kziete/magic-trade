@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import {
   SimpleGrid,
   Card,
@@ -24,6 +25,7 @@ interface WishlistGridProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  cols?: ComponentProps<typeof SimpleGrid>["cols"];
 }
 
 export default function WishlistGrid({
@@ -32,6 +34,7 @@ export default function WishlistGrid({
   error,
   emptyMessage,
   onDelete,
+  cols,
 }: WishlistGridProps) {
   if (isLoading) {
     return (
@@ -59,7 +62,7 @@ export default function WishlistGrid({
 
   return (
     <SimpleGrid
-      cols={{ base: 2, xs: 3, sm: 4, md: 5 }}
+      cols={cols ?? { base: 2, xs: 3, sm: 4, md: 5 }}
       spacing="md"
     >
       {items.map((item) => (

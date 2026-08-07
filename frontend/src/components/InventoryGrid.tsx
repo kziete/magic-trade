@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import {
   SimpleGrid,
   Card,
@@ -24,6 +25,7 @@ interface InventoryGridProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  cols?: ComponentProps<typeof SimpleGrid>["cols"];
 }
 
 export default function InventoryGrid({
@@ -32,6 +34,7 @@ export default function InventoryGrid({
   error,
   emptyMessage,
   onDelete,
+  cols,
 }: InventoryGridProps) {
   if (isLoading) {
     return (
@@ -59,7 +62,7 @@ export default function InventoryGrid({
 
   return (
     <SimpleGrid
-      cols={{ base: 2, xs: 3, sm: 4, md: 5 }}
+      cols={cols ?? { base: 2, xs: 3, sm: 4, md: 5 }}
       spacing="md"
     >
       {items.map((item) => (

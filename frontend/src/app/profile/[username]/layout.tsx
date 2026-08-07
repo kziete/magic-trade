@@ -8,7 +8,9 @@ import UserProfileSidebar from "@/components/UserProfileSidebar";
 import UserProfileTabs, { ProfileTab } from "@/components/UserProfileTabs";
 
 function getActiveTab(pathname: string): ProfileTab {
-  return pathname.endsWith("/wishlist") ? "wishlist" : "inventory";
+  if (pathname.endsWith("/wishlist")) return "wishlist";
+  if (pathname.endsWith("/matches")) return "matches";
+  return "inventory";
 }
 
 export default function UserProfileLayout({ children }: { children: ReactNode }) {
