@@ -59,7 +59,7 @@ export default function ContactUserPanel({
 
         <Textarea
           label="Mensaje (opcional)"
-          placeholder="Escribí un mensaje..."
+          placeholder="Escribe un mensaje..."
           value={message}
           onChange={(e) => setMessage(e.currentTarget.value)}
           minRows={4}

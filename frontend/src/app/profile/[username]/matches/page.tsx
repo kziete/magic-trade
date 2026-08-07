@@ -55,7 +55,7 @@ export default function UserMatchesPage() {
     <Grid gutter="lg">
       <Grid.Col span={6}>
         <Stack gap="md">
-          <Title order={3}>Tiene lo que buscás</Title>
+          <Title order={3}>Tiene lo que buscas</Title>
           <InventoryGrid
             items={haveData ?? []}
             isLoading={haveLoading}
@@ -68,7 +68,7 @@ export default function UserMatchesPage() {
 
       <Grid.Col span={6}>
         <Stack gap="md">
-          <Title order={3}>Busca lo que tenés</Title>
+          <Title order={3}>Busca lo que tienes</Title>
           <WishlistGrid
             items={wantData ?? []}
             isLoading={wantLoading}

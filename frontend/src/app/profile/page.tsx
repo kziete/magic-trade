@@ -129,7 +129,7 @@ export default function ProfilePage() {
 
           <Alert color="yellow" icon={<IconAlertTriangle size={18} />}>
             Estos datos serán públicos y se usarán para contactarte, procura
-            no poner nada delicado acá.
+            no poner nada delicado aquí.
           </Alert>
 
           <Button onClick={handleSubmit} loading={isSaving}>

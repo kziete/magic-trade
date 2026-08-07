@@ -61,7 +61,7 @@ export default function InventoryTable({
           <Table.Th>Carta</Table.Th>
           <Table.Th>Set</Table.Th>
           <Table.Th>Finish</Table.Th>
-          <Table.Th>Condicion</Table.Th>
+          <Table.Th>Condición</Table.Th>
           <Table.Th>Idioma</Table.Th>
           {showMatchCount && <Table.Th>Buscan</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
