@@ -42,7 +42,27 @@ echo "==> Pulling latest code..."
 git pull
 
 echo "==> Building new images (old containers keep serving traffic during this step)..."
-docker compose -f "$COMPOSE_FILE" build web frontend
+# BuildKit (the default builder) parallelizes independent Dockerfile stages
+# across all available cores with no memory cap of its own, which can be
+# enough load on a small droplet to make the live containers sluggish for
+# real traffic mid-deploy. Neither Dockerfile uses BuildKit-only syntax
+# (cache mounts, heredocs, etc.), so we fall back to the classic builder for
+# this step, which honors --memory and builds one Dockerfile step at a time
+# instead of BuildKit's concurrent stage graph. We also build web and
+# frontend one at a time (not in the same `build` call) so their resource
+# usage doesn't stack, and run under `nice`/`ionice` so the build yields CPU
+# and disk I/O priority to the containers actually serving traffic.
+# Override DEPLOY_BUILD_MEMORY if your droplet needs a different cap.
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+BUILD_MEMORY="${DEPLOY_BUILD_MEMORY:-1g}"
+THROTTLE=(nice -n 19)
+if command -v ionice >/dev/null 2>&1; then
+  THROTTLE=(ionice -c2 -n7 "${THROTTLE[@]}")
+fi
+for service in web frontend; do
+  "${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "$BUILD_MEMORY" "$service"
+done
 
 echo "==> Rolling out web..."
 docker rollout -f "$COMPOSE_FILE" web -t 40
