@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { Grid, Stack, Title, Loader, Center } from "@mantine/core";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetUserMatchesAvailableQuery, useGetUserMatchesWantedQuery } from "@/lib/api";
-import { userProfileRoutes } from "@/lib/routes";
+import { userProfileRoutes, loginRoute } from "@/lib/routes";
 import InventoryGrid from "@/components/InventoryGrid";
 import WishlistGrid from "@/components/WishlistGrid";
 
 export default function UserMatchesPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const username = params.username as string;
   const { user, isLoading: authLoading } = useAuth();
@@ -18,13 +19,13 @@ export default function UserMatchesPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push("/login");
+      router.push(loginRoute(pathname));
       return;
     }
     if (user.username === username) {
       router.push(userProfileRoutes.inventory(username));
     }
-  }, [authLoading, user, username, router]);
+  }, [authLoading, user, username, router, pathname]);
 
   const skip = authLoading || !user || user.username === username;
 

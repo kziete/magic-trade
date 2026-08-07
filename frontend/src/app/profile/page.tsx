@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Container,
   Title,
@@ -15,9 +15,11 @@ import {
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetMeQuery, useUpdateProfileMutation } from "@/lib/authApi";
+import { loginRoute } from "@/lib/routes";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user: authUser, isLoading: authLoading } = useAuth();
 
   const { data: me, isLoading: meLoading } = useGetMeQuery(undefined, {
@@ -34,9 +36,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !authUser) {
-      router.push("/login");
+      router.push(loginRoute(pathname));
     }
-  }, [authLoading, authUser, router]);
+  }, [authLoading, authUser, router, pathname]);
 
   useEffect(() => {
     if (me) {

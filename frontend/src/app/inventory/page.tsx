@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Container,
   Title,
@@ -18,7 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconUpload, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
-import { userProfileRoutes } from "@/lib/routes";
+import { userProfileRoutes, loginRoute } from "@/lib/routes";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
 import ImportInventoryPanel from "@/components/ImportInventoryPanel";
 import InventoryTable from "@/components/InventoryTable";
@@ -29,6 +29,7 @@ const VIEW_MODE_KEY = "inventory-view-mode";
 
 function InventoryPageContent() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const [panelOpened, setPanelOpened] = useState(false);
@@ -91,9 +92,10 @@ function InventoryPageContent() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      const query = searchParams.toString();
+      router.push(loginRoute(query ? `${pathname}?${query}` : pathname));
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, router, pathname, searchParams]);
 
   const handlePageChange = (newPage: number) => {
     router.push(`/inventory?page=${newPage}`);
