@@ -91,6 +91,7 @@ function InventoryPageContent() {
     : 1;
 
   useEffect(() => {
+    console.log("[DEBUG inventory guard]", { authLoading, user });
     if (!authLoading && !user) {
       const query = searchParams.toString();
       router.push(loginRoute(query ? `${pathname}?${query}` : pathname));

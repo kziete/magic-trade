@@ -32,7 +32,7 @@ function GoogleCallbackContent() {
     try {
       const result = await googleLogin({ code }).unwrap();
       localStorage.setItem("refreshToken", result.refresh);
-      login(result.access);
+      await login(result.access);
       router.push(sanitizeRedirectPath(searchParams.get("state")));
     } catch {
       setError("Error al iniciar sesión con Google");

@@ -6,14 +6,14 @@ import { User, useLazyGetMeQuery } from "./authApi";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  login: () => {},
+  login: async () => {},
   logout: () => {},
 });
 
@@ -32,17 +32,21 @@ export default function AuthProvider({
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("[DEBUG mount effect] token present:", !!token);
     if (token) {
       getMe()
         .unwrap()
         .then((userData) => {
+          console.log("[DEBUG mount effect] getMe resolved", userData);
           setUser(userData);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log("[DEBUG mount effect] getMe rejected", err);
           localStorage.removeItem("token");
           localStorage.removeItem("refreshToken");
         })
         .finally(() => {
+          console.log("[DEBUG mount effect] setIsLoading(false)");
           setIsLoading(false);
         });
     } else {
@@ -50,13 +54,10 @@ export default function AuthProvider({
     }
   }, [getMe]);
 
-  const login = (token: string) => {
+  const login = async (token: string) => {
     localStorage.setItem("token", token);
-    getMe()
-      .unwrap()
-      .then((userData) => {
-        setUser(userData);
-      });
+    const userData = await getMe().unwrap();
+    setUser(userData);
   };
 
   const logout = () => {

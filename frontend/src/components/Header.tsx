@@ -14,8 +14,8 @@ export default function Header() {
   const displayName = user?.username ?? "";
 
   const handleLogout = () => {
+    router.replace("/");
     logout();
-    router.push("/");
   };
 
   return (
