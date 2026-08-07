@@ -31,7 +31,7 @@ function WishlistPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading, isLoggingOut } = useAuth();
-  const [panelOpened, setPanelOpened] = useState(false);
+  const [panelOpened, setPanelOpened] = useState(() => searchParams.get("open") === "add");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
@@ -45,6 +45,17 @@ function WishlistPageContent() {
     const savedMode = localStorage.getItem(VIEW_MODE_KEY) as ViewMode | null;
     if (savedMode === "table" || savedMode === "grid") {
       setViewMode(savedMode);
+    }
+  }, []);
+
+  // Strip a consumed ?open=add so closing the panel and refreshing (or going
+  // back) doesn't reopen it.
+  useEffect(() => {
+    if (searchParams.get("open") === "add") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("open");
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
     }
   }, []);
 

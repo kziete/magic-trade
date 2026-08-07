@@ -20,7 +20,7 @@ const CTA_ITEMS: CtaItem[] = [
     title: "¿Tienes cartas para vender o cambiar?",
     description: "Sube tu colección y que la gente que las busca te encuentre.",
     buttonLabel: "Subir mis cartas",
-    href: "/inventory",
+    href: "/inventory?open=add",
     icon: IconUpload,
   },
   {
@@ -28,7 +28,7 @@ const CTA_ITEMS: CtaItem[] = [
     title: "Registra lo que buscas",
     description: "Te avisaremos cuando aparezca disponible.",
     buttonLabel: "Crear alerta",
-    href: "/wishlist",
+    href: "/wishlist?open=add",
     icon: IconBellPlus,
   },
 ];
