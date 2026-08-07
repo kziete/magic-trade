@@ -19,6 +19,7 @@ interface WishlistTableProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  showMatchCount?: boolean;
 }
 
 export default function WishlistTable({
@@ -27,6 +28,7 @@ export default function WishlistTable({
   error,
   emptyMessage,
   onDelete,
+  showMatchCount = false,
 }: WishlistTableProps) {
   if (isLoading) {
     return (
@@ -59,7 +61,7 @@ export default function WishlistTable({
           <Table.Th>Carta</Table.Th>
           <Table.Th>Set</Table.Th>
           <Table.Th>Finish</Table.Th>
-          <Table.Th>Coincidencias</Table.Th>
+          {showMatchCount && <Table.Th>Coincidencias</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
       </Table.Thead>
@@ -85,23 +87,25 @@ export default function WishlistTable({
                 <Badge size="sm" variant="outline" color="gray">Sin preferencia</Badge>
               )}
             </Table.Td>
-            <Table.Td>
-              {item.matches_count > 0 ? (
-                <Anchor
-                  component={Link}
-                  href={`/cards/${item.card_id}?wanted=${item.id}`}
-                  underline="never"
-                >
-                  <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+            {showMatchCount && (
+              <Table.Td>
+                {item.matches_count > 0 ? (
+                  <Anchor
+                    component={Link}
+                    href={`/cards/${item.card_id}?wanted=${item.id}`}
+                    underline="never"
+                  >
+                    <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                      {item.matches_count}
+                    </Badge>
+                  </Anchor>
+                ) : (
+                  <Badge size="sm" variant="outline" color="gray">
                     {item.matches_count}
                   </Badge>
-                </Anchor>
-              ) : (
-                <Badge size="sm" variant="outline" color="gray">
-                  {item.matches_count}
-                </Badge>
-              )}
-            </Table.Td>
+                )}
+              </Table.Td>
+            )}
             {onDelete && (
               <Table.Td>
                 <ActionIcon

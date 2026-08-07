@@ -149,6 +149,7 @@ function InventoryPageContent() {
             error={!!error}
             emptyMessage="No tienes cartas en tu inventario"
             onDelete={handleDelete}
+            showMatchCount
           />
         ) : (
           <InventoryGrid
@@ -157,6 +158,7 @@ function InventoryPageContent() {
             error={!!error}
             emptyMessage="No tienes cartas en tu inventario"
             onDelete={handleDelete}
+            showMatchCount
           />
         )}
 

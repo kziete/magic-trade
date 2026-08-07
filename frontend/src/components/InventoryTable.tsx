@@ -19,6 +19,7 @@ interface InventoryTableProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  showMatchCount?: boolean;
 }
 
 export default function InventoryTable({
@@ -27,6 +28,7 @@ export default function InventoryTable({
   error,
   emptyMessage,
   onDelete,
+  showMatchCount = false,
 }: InventoryTableProps) {
   if (isLoading) {
     return (
@@ -61,7 +63,7 @@ export default function InventoryTable({
           <Table.Th>Finish</Table.Th>
           <Table.Th>Condicion</Table.Th>
           <Table.Th>Idioma</Table.Th>
-          <Table.Th>Buscan</Table.Th>
+          {showMatchCount && <Table.Th>Buscan</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
       </Table.Thead>
@@ -85,23 +87,25 @@ export default function InventoryTable({
             <Table.Td>
               <Badge size="sm" color="grape">{item.language}</Badge>
             </Table.Td>
-            <Table.Td>
-              {item.wanted_count > 0 ? (
-                <Anchor
-                  component={Link}
-                  href={`/cards/${item.card_id}?available=${item.id}`}
-                  underline="never"
-                >
-                  <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+            {showMatchCount && (
+              <Table.Td>
+                {item.wanted_count > 0 ? (
+                  <Anchor
+                    component={Link}
+                    href={`/cards/${item.card_id}?available=${item.id}`}
+                    underline="never"
+                  >
+                    <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                      {item.wanted_count}
+                    </Badge>
+                  </Anchor>
+                ) : (
+                  <Badge size="sm" variant="outline" color="gray">
                     {item.wanted_count}
                   </Badge>
-                </Anchor>
-              ) : (
-                <Badge size="sm" variant="outline" color="gray">
-                  {item.wanted_count}
-                </Badge>
-              )}
-            </Table.Td>
+                )}
+              </Table.Td>
+            )}
             {onDelete && (
               <Table.Td>
                 <ActionIcon

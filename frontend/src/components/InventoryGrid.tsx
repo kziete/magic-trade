@@ -26,6 +26,7 @@ interface InventoryGridProps {
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
   cols?: ComponentProps<typeof SimpleGrid>["cols"];
+  showMatchCount?: boolean;
 }
 
 export default function InventoryGrid({
@@ -35,6 +36,7 @@ export default function InventoryGrid({
   emptyMessage,
   onDelete,
   cols,
+  showMatchCount = false,
 }: InventoryGridProps) {
   if (isLoading) {
     return (
@@ -117,20 +119,22 @@ export default function InventoryGrid({
               <Badge size="xs" color="grape">
                 {item.language}
               </Badge>
-              {item.wanted_count > 0 ? (
-                <Anchor
-                  component={Link}
-                  href={`/cards/${item.card_id}?available=${item.id}`}
-                  underline="never"
-                >
-                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+              {showMatchCount && (
+                item.wanted_count > 0 ? (
+                  <Anchor
+                    component={Link}
+                    href={`/cards/${item.card_id}?available=${item.id}`}
+                    underline="never"
+                  >
+                    <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                      {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
+                    </Badge>
+                  </Anchor>
+                ) : (
+                  <Badge size="xs" variant="outline" color="gray">
                     {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
                   </Badge>
-                </Anchor>
-              ) : (
-                <Badge size="xs" variant="outline" color="gray">
-                  {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
-                </Badge>
+                )
               )}
             </Group>
           </Stack>

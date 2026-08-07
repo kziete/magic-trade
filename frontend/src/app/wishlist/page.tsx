@@ -144,6 +144,7 @@ function WishlistPageContent() {
             error={!!error}
             emptyMessage="No tienes cartas en tu wishlist"
             onDelete={handleDelete}
+            showMatchCount
           />
         ) : (
           <WishlistGrid
@@ -152,6 +153,7 @@ function WishlistPageContent() {
             error={!!error}
             emptyMessage="No tienes cartas en tu wishlist"
             onDelete={handleDelete}
+            showMatchCount
           />
         )}
 

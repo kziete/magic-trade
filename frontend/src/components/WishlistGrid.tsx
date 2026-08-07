@@ -26,6 +26,7 @@ interface WishlistGridProps {
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
   cols?: ComponentProps<typeof SimpleGrid>["cols"];
+  showMatchCount?: boolean;
 }
 
 export default function WishlistGrid({
@@ -35,6 +36,7 @@ export default function WishlistGrid({
   emptyMessage,
   onDelete,
   cols,
+  showMatchCount = false,
 }: WishlistGridProps) {
   if (isLoading) {
     return (
@@ -137,20 +139,22 @@ export default function WishlistGrid({
                   Sin preferencia
                 </Badge>
               )}
-              {item.matches_count > 0 ? (
-                <Anchor
-                  component={Link}
-                  href={`/cards/${item.card_id}?wanted=${item.id}`}
-                  underline="never"
-                >
-                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+              {showMatchCount && (
+                item.matches_count > 0 ? (
+                  <Anchor
+                    component={Link}
+                    href={`/cards/${item.card_id}?wanted=${item.id}`}
+                    underline="never"
+                  >
+                    <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
+                      {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+                    </Badge>
+                  </Anchor>
+                ) : (
+                  <Badge size="xs" variant="outline" color="gray">
                     {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
                   </Badge>
-                </Anchor>
-              ) : (
-                <Badge size="xs" variant="outline" color="gray">
-                  {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
-                </Badge>
+                )
               )}
             </Group>
           </Stack>
