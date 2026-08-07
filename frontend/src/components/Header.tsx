@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Group, Button, Text, Menu, Avatar, ActionIcon, Box } from "@mantine/core";
-import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart } from "@tabler/icons-react";
+import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart, IconEye } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
+import { userProfileRoutes } from "@/lib/routes";
 
 export default function Header() {
   const router = useRouter();
@@ -83,6 +84,13 @@ export default function Header() {
                 <Menu.Dropdown>
                   <Menu.Item
                     component={Link}
+                    href={userProfileRoutes.inventory(displayName)}
+                    leftSection={<IconEye size={16} />}
+                  >
+                    Ver mi perfil público
+                  </Menu.Item>
+                  <Menu.Item
+                    component={Link}
                     href="/profile"
                     leftSection={<IconUserCircle size={16} />}
                   >
@@ -111,6 +119,13 @@ export default function Header() {
                 <Menu.Dropdown>
                   <Menu.Label>{displayName}</Menu.Label>
                   <Menu.Divider />
+                  <Menu.Item
+                    component={Link}
+                    href={userProfileRoutes.inventory(displayName)}
+                    leftSection={<IconEye size={16} />}
+                  >
+                    Ver mi perfil público
+                  </Menu.Item>
                   <Menu.Item
                     component={Link}
                     href="/profile"

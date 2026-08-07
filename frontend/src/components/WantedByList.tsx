@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { Wanted } from "@/lib/api";
+import { userProfileRoutes } from "@/lib/routes";
 
 interface WantedByListProps {
   items?: Wanted[];
@@ -83,7 +84,7 @@ export default function WantedByList({
                 <Avatar size="sm" radius="xl">
                   <IconUser size={16} />
                 </Avatar>
-                <Anchor component={Link} href={`/wishlist/${item.username}`} size="sm">
+                <Anchor component={Link} href={userProfileRoutes.wishlist(item.username)} size="sm">
                   {item.username}
                 </Anchor>
               </Group>

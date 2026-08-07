@@ -18,6 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetWishlistQuery, useDeleteFromWishlistMutation } from "@/lib/api";
+import { userProfileRoutes } from "@/lib/routes";
 import AddWantedPanel from "@/components/AddWantedPanel";
 import WishlistTable from "@/components/WishlistTable";
 import WishlistGrid from "@/components/WishlistGrid";
@@ -97,7 +98,7 @@ function WishlistPageContent() {
   };
 
   const handleShare = () => {
-    clipboard.copy(`${window.location.origin}/wishlist/${user?.username}`);
+    clipboard.copy(`${window.location.origin}${userProfileRoutes.wishlist(user?.username ?? "")}`);
   };
 
   if (authLoading || !user) {

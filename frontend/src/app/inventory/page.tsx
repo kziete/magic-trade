@@ -18,6 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconUpload, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
+import { userProfileRoutes } from "@/lib/routes";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
 import ImportInventoryPanel from "@/components/ImportInventoryPanel";
 import InventoryTable from "@/components/InventoryTable";
@@ -99,7 +100,7 @@ function InventoryPageContent() {
   };
 
   const handleShare = () => {
-    clipboard.copy(`${window.location.origin}/inventory/${user?.username}`);
+    clipboard.copy(`${window.location.origin}${userProfileRoutes.inventory(user?.username ?? "")}`);
   };
 
   if (authLoading || !user) {

@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { Available } from "@/lib/api";
+import { userProfileRoutes } from "@/lib/routes";
 
 interface AvailableListProps {
   items?: Available[];
@@ -75,7 +76,7 @@ export default function AvailableList({
                 <Avatar size="sm" radius="xl">
                   <IconUser size={16} />
                 </Avatar>
-                <Anchor component={Link} href={`/inventory/${item.username}`} size="sm">
+                <Anchor component={Link} href={userProfileRoutes.inventory(item.username)} size="sm">
                   {item.username}
                 </Anchor>
               </Group>
