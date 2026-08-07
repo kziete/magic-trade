@@ -17,15 +17,15 @@ interface CtaItem {
 const CTA_ITEMS: CtaItem[] = [
   {
     id: "upload-cards",
-    title: "¿Tenés cartas para vender?",
-    description: "Subí tu colección y que la gente que las busca te encuentre.",
+    title: "¿Tienes cartas para vender o cambiar?",
+    description: "Sube tu colección y que la gente que las busca te encuentre.",
     buttonLabel: "Subir mis cartas",
     href: "/inventory",
     icon: IconUpload,
   },
   {
     id: "register-wanted",
-    title: "Registrá lo que buscás",
+    title: "Registra lo que buscas",
     description: "Te avisaremos cuando aparezca disponible.",
     buttonLabel: "Crear alerta",
     href: "/wishlist",
@@ -40,7 +40,12 @@ function CtaCard({ item }: { item: CtaItem }) {
       <Stack gap="md" justify="center" h="100%">
         <Title order={2}>{item.title}</Title>
         <Text c="dimmed">{item.description}</Text>
-        <Button component={Link} href={item.href} size="md" leftSection={<Icon size={18} />}>
+        <Button
+          component={Link}
+          href={item.href}
+          size="md"
+          leftSection={<Icon size={18} />}
+        >
           {item.buttonLabel}
         </Button>
       </Stack>
@@ -51,7 +56,11 @@ function CtaCard({ item }: { item: CtaItem }) {
 export default function CtaSection() {
   return (
     <SimpleGrid
-      cols={{ base: 1, sm: Math.min(CTA_ITEMS.length, 2), lg: Math.min(CTA_ITEMS.length, 3) }}
+      cols={{
+        base: 1,
+        sm: Math.min(CTA_ITEMS.length, 2),
+        lg: Math.min(CTA_ITEMS.length, 3),
+      }}
       spacing="xl"
     >
       {CTA_ITEMS.map((item) => (
