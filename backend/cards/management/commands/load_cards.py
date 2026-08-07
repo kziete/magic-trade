@@ -1,13 +1,38 @@
+import gzip
+import io
 import json
-from django.core.management.base import BaseCommand
+from contextlib import contextmanager
+from urllib.parse import urlparse
+
+import requests
+from django.core.management.base import BaseCommand, CommandError
 from cards.models import Set, Card, Variant, Finish
 
 
 class Command(BaseCommand):
-    help = 'Carga cartas desde un archivo JSONL de Scryfall'
+    help = 'Carga cartas desde un archivo JSONL de Scryfall (ruta local o URL comprimida con gzip)'
 
     def add_arguments(self, parser):
-        parser.add_argument('file', type=str, help='Ruta al archivo JSONL')
+        parser.add_argument('file', type=str, help='Ruta al archivo JSONL o URL a un archivo .json.gz')
+
+    @contextmanager
+    def _open_source(self, file_path):
+        if urlparse(file_path).scheme in ('http', 'https'):
+            self.stdout.write(f'Descargando {file_path}...')
+            try:
+                response = requests.get(file_path, stream=True)
+                response.raise_for_status()
+            except requests.RequestException as e:
+                raise CommandError(f'No se pudo descargar {file_path}: {e}')
+
+            try:
+                with gzip.GzipFile(fileobj=response.raw) as gz:
+                    yield io.TextIOWrapper(gz, encoding='utf-8')
+            finally:
+                response.close()
+        else:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                yield f
 
     def handle(self, *args, **options):
         file_path = options['file']
@@ -20,7 +45,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f'Leyendo {file_path}...')
 
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with self._open_source(file_path) as f:
             for line_num, line in enumerate(f, 1):
                 data = json.loads(line)
 
