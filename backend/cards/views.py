@@ -13,7 +13,7 @@ from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
 from .services import load_inventory, LOADERS
-from zavudev import Zavudev
+from zavudev import Zavudev, ZavudevError
 
 zavu = Zavudev(api_key=settings.ZAVU_API_KEY)
 
@@ -269,19 +269,55 @@ class ContactUserView(APIView):
         target_user = get_object_or_404(User, username=username)
         if target_user == request.user:
             return Response(
-                {'error': 'No podés contactarte a vos mismo'},
+                {'error': 'No puedes contactarte a ti mismo'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         serializer = ContactUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        sender_message = serializer.validated_data.get('message', '').strip()
 
-        message = zavu.messages.send(
-            to="kziete@gmail.com",
-            channel="email",
-            subject="Hello from Zavu!",
-            text="Hello from Zavu!"
-        )
+        target_profile = getattr(target_user, 'profile', None)
+        to_email = (target_profile.contact_email if target_profile else None) or target_user.email
+        if not to_email:
+            return Response(
+                {'error': 'Este usuario no tiene un email de contacto configurado'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        sender_profile = getattr(request.user, 'profile', None)
+        sender_email = (sender_profile.contact_email if sender_profile else None) or request.user.email
+
+        contact_lines = [f"Email: {sender_email}"]
+        if sender_profile and sender_profile.phone:
+            contact_lines.append(f"Teléfono: {sender_profile.phone}")
+        if sender_profile and sender_profile.facebook_url:
+            contact_lines.append(f"Facebook: {sender_profile.facebook_url}")
+        contact_lines.append(f"Perfil: {settings.FRONTEND_URL}/profile/{request.user.username}")
+
+        text_parts = [
+            f"{request.user.username} quiere contactarte a través de Magic Trade.",
+            "",
+            "Datos de contacto:",
+            "\n".join(contact_lines),
+            "",
+            "Mensaje:",
+            sender_message,
+        ]
+
+        try:
+            zavu.messages.send(
+                to=to_email,
+                channel="email",
+                subject=f"{request.user.username} quiere contactarte en Magic Trade",
+                text="\n".join(text_parts),
+                reply_to=sender_email,
+            )
+        except ZavudevError:
+            return Response(
+                {'error': 'No se pudo enviar el mensaje, intenta nuevamente'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         return Response(status=status.HTTP_201_CREATED)
 

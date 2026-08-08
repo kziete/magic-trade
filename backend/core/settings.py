@@ -40,6 +40,15 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').s
 # what Django computes on its own (http://web:8000).
 CSRF_TRUSTED_ORIGINS = [f'https://{d.strip()}' for d in os.environ.get('DOMAIN', '').split(',') if d.strip()]
 
+# Canonical public domain, for building absolute links (e.g. in emails) back
+# to the frontend. Empty in local dev, where DOMAIN isn't set.
+DOMAIN = os.environ.get('DOMAIN', '').split(',')[0].strip()
+
+# Base URL (with scheme) of the frontend, for building absolute links back to
+# it (e.g. in emails). Unlike DOMAIN, this always resolves to something
+# usable -- defaults to the local Next.js dev server so links work in dev too.
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3001').rstrip('/')
+
 
 # Application definition
 

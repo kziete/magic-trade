@@ -36,8 +36,14 @@ export default function ContactUserPanel({
     setError("");
     setSuccess(false);
 
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) {
+      setError("Por favor escribe un mensaje");
+      return;
+    }
+
     try {
-      await contactUser({ username, message: message.trim() || undefined }).unwrap();
+      await contactUser({ username, message: trimmedMessage }).unwrap();
       setSuccess(true);
       setMessage("");
     } catch {
@@ -58,15 +64,15 @@ export default function ContactUserPanel({
         {success && <Alert color="green">Mensaje enviado exitosamente</Alert>}
 
         <Textarea
-          label="Mensaje (opcional)"
-          placeholder="Escribe un mensaje..."
+          label="Mensaje"
+          placeholder="Aquí incluye lo que buscas o tienes"
           value={message}
           onChange={(e) => setMessage(e.currentTarget.value)}
           minRows={4}
           autosize
         />
 
-        <Button onClick={handleSubmit} loading={isContacting}>
+        <Button onClick={handleSubmit} loading={isContacting} disabled={!message.trim()}>
           Enviar mensaje
         </Button>
       </Stack>

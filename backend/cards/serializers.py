@@ -75,4 +75,4 @@ class WantedCreateSerializer(serializers.ModelSerializer):
 
 
 class ContactUserSerializer(serializers.Serializer):
-    message = serializers.CharField(required=False, allow_blank=True, max_length=1000)
+    message = serializers.CharField(required=True, allow_blank=False, max_length=1000)
