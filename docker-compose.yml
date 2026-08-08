@@ -8,6 +8,8 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
 
@@ -29,6 +31,8 @@ services:
       - jupyter_data:/root/.jupyter
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
 

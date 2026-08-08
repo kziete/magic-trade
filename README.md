@@ -24,10 +24,10 @@ Requisitos: Docker, Node 20+, npm.
 3. **Variables de entorno del backend** (opcional, solo si vas a probar login con Google/Facebook):
 
    ```bash
-   cp backend/.env.example backend/.env
+   cp .env.example .env
    ```
 
-   y completá `GOOGLE_CLIENT_ID`/`GOOGLE_SECRET`/`FACEBOOK_CLIENT_ID`/`FACEBOOK_SECRET`. `manage.py` carga este archivo automáticamente (`load_dotenv()`).
+   y completá `GOOGLE_CLIENT_ID`/`GOOGLE_SECRET`/`FACEBOOK_CLIENT_ID`/`FACEBOOK_SECRET`. `docker-compose.yml` carga este archivo automáticamente (`env_file:`) en los servicios `web` y `jupyter`.
 
 4. **Frontend**:
 
@@ -37,7 +37,7 @@ Requisitos: Docker, Node 20+, npm.
    npm run dev
    ```
 
-   Por defecto corre en `http://localhost:3000` (si ese puerto está ocupado por otro proyecto, Next.js pasa automáticamente al `3001`). Los redirect URIs de OAuth en el backend están configurados por defecto para `http://localhost:3001/auth/callback/...`, así que si vas a probar login social en local, o liberás el puerto 3000 o actualizás `GOOGLE_REDIRECT_URI`/`FACEBOOK_REDIRECT_URI` en `backend/.env` para que coincidan con el puerto real del frontend.
+   Por defecto corre en `http://localhost:3000` (si ese puerto está ocupado por otro proyecto, Next.js pasa automáticamente al `3001`). Los redirect URIs de OAuth en el backend están configurados por defecto para `http://localhost:3001/auth/callback/...`, así que si vas a probar login social en local, o liberás el puerto 3000 o actualizás `GOOGLE_REDIRECT_URI`/`FACEBOOK_REDIRECT_URI` en `.env` para que coincidan con el puerto real del frontend.
 
    El frontend sin configuración adicional ya apunta al backend en `http://localhost:9000` (fallback de `BACKEND_INTERNAL_URL` en `next.config.ts`), así que con los pasos 1-2 hechos, `/api` y `/admin` funcionan directo desde `http://localhost:3000`.
 
