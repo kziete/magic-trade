@@ -7,12 +7,15 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
 from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField, Exists
 from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
 from .services import load_inventory, LOADERS
+from zavudev import Zavudev
 
+zavu = Zavudev(api_key=settings.ZAVU_API_KEY)
 
 def _annotate_fallback_image(queryset):
     first_variant_image = (
@@ -273,8 +276,12 @@ class ContactUserView(APIView):
         serializer = ContactUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # TODO: enviar el mensaje + datos de contacto de request.user al
-        # target_user (email, notificación, etc). Por ahora es un stub.
+        message = zavu.messages.send(
+            to="kziete@gmail.com",
+            channel="email",
+            subject="Hello from Zavu!",
+            text="Hello from Zavu!"
+        )
 
         return Response(status=status.HTTP_201_CREATED)
 

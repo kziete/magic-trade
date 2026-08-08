@@ -12,3 +12,4 @@ python-dotenv
 gunicorn>=21.2
 whitenoise>=6.6
 dj-database-url>=2.1
+zavudev==0.24.0

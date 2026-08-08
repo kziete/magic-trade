@@ -244,3 +244,4 @@ SOCIALACCOUNT_PROVIDERS = {
 # OAuth redirect URIs
 FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI', 'http://localhost:3001/auth/callback/facebook')
 GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'http://localhost:3001/auth/callback/google')
+ZAVU_API_KEY = os.environ.get("ZAVU_API_KEY", "")
