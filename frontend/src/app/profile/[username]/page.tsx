@@ -99,6 +99,7 @@ function UserInventoryPageContent() {
           isLoading={isLoading}
           error={!!error}
           emptyMessage={`${username} no tiene cartas en su inventario`}
+          cols={{ base: 2, xs: 2, sm: 3, md: 4 }}
         />
       )}
 

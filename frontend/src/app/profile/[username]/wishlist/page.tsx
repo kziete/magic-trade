@@ -99,6 +99,7 @@ function UserWishlistPageContent() {
           isLoading={isLoading}
           error={!!error}
           emptyMessage={`${username} no tiene cartas en su wishlist`}
+          cols={{ base: 2, xs: 2, sm: 3, md: 4 }}
         />
       )}
 

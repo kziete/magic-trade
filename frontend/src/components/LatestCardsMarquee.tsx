@@ -25,26 +25,26 @@ function MarqueeCard({ item }: { item: Available }) {
     <Card
       component={Link}
       href={`/inventory/${item.username}`}
-      padding="xs"
+      padding="sm"
       withBorder
-      w={160}
-      style={{ flex: "0 0 160px" }}
+      w={210}
+      style={{ flex: "0 0 210px" }}
     >
-      <Card.Section pt="md" px="xs">
+      <Card.Section pt="md" px="sm">
         <Image src={item.image} alt={item.card_name} radius="lg" />
       </Card.Section>
-      <Stack gap={4} mt="xs">
-        <Text size="xs" fw={600} lineClamp={1}>
+      <Stack gap={6} mt="sm">
+        <Text size="sm" fw={600} lineClamp={1}>
           {item.card_name}
         </Text>
         <Text size="xs" c="dimmed" lineClamp={1}>
           {item.set_name}
         </Text>
         <Group gap={4} wrap="wrap">
-          <Badge size="xs" color={item.finish === "foil" ? "yellow" : "gray"}>
+          <Badge size="sm" color={item.finish === "foil" ? "yellow" : "gray"}>
             {item.finish}
           </Badge>
-          <Badge size="xs" color="blue">
+          <Badge size="sm" color="blue">
             {item.condition}
           </Badge>
         </Group>
