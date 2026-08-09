@@ -11,12 +11,11 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField, Exists
 from django.db.models.functions import Coalesce
+from kombu.exceptions import OperationalError
 from .models import Card, Variant, Available, Wanted
 from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
 from .services import load_inventory, LOADERS
-from zavudev import Zavudev, ZavudevError
-
-zavu = Zavudev(api_key=settings.ZAVU_API_KEY)
+from .tasks import send_contact_email
 
 def _annotate_fallback_image(queryset):
     first_variant_image = (
@@ -318,15 +317,14 @@ class ContactUserView(APIView):
         })
 
         try:
-            zavu.messages.send(
-                to=to_email,
-                channel="email",
+            send_contact_email.delay(
+                to_email=to_email,
                 subject=f"{request.user.username} quiere contactarte en Magic Trade",
                 text="\n".join(text_parts),
                 html_body=html_body,
                 reply_to=sender_email,
             )
-        except ZavudevError:
+        except OperationalError:
             return Response(
                 {'error': 'No se pudo enviar el mensaje, intenta nuevamente'},
                 status=status.HTTP_502_BAD_GATEWAY,

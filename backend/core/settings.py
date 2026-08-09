@@ -254,3 +254,13 @@ SOCIALACCOUNT_PROVIDERS = {
 FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI', 'http://localhost:3001/auth/callback/facebook')
 GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'http://localhost:3001/auth/callback/google')
 ZAVU_API_KEY = os.environ.get("ZAVU_API_KEY", "")
+
+# Celery
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+# Redis may not be accepting connections yet when the worker container starts;
+# retry instead of the worker exiting immediately (this becomes the default
+# again in Celery 6, but 5.x still needs it set explicitly).
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
