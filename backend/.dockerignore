@@ -9,7 +9,6 @@ db.sqlite3
 .gitignore
 staticfiles/
 media/
-.ipython/
 .ipynb_checkpoints/
 *.jsonl
 *.log
