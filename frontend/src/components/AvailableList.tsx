@@ -57,7 +57,7 @@ export default function AvailableList({
   return (
     <Stack gap="md">
       {items.map((item) => (
-        <Card key={item.id} shadow="sm" padding="md" radius="md" withBorder>
+        <Card key={item.id} padding="md" withBorder>
           <Group wrap="nowrap" align="flex-start">
             <Image src={item.image} alt={item.card_name} w={100} radius="sm" />
             <Stack gap="xs" style={{ flex: 1 }}>

@@ -25,8 +25,8 @@ const CTA_ITEMS: CtaItem[] = [
   },
   {
     id: "register-wanted",
-    title: "Registra lo que buscas",
-    description: "Te avisaremos cuando aparezca disponible.",
+    title: "¿No encuentras lo que buscas?",
+    description: "Regístralas y e avisaremos cuando esten disponibles.",
     buttonLabel: "Crear alerta",
     href: "/wishlist?open=add",
     icon: IconBellPlus,
@@ -36,7 +36,7 @@ const CTA_ITEMS: CtaItem[] = [
 function CtaCard({ item }: { item: CtaItem }) {
   const Icon = item.icon;
   return (
-    <Card withBorder radius="lg" p="xl">
+    <Card withBorder p="xl">
       <Stack gap="md" justify="center" h="100%">
         <Title order={2}>{item.title}</Title>
         <Text c="dimmed">{item.description}</Text>

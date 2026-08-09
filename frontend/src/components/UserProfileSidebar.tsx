@@ -30,7 +30,7 @@ export default function UserProfileSidebar({ username }: UserProfileSidebarProps
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card padding="lg" withBorder>
       <Stack gap="md" align="center">
         <Avatar size={64} radius="xl">
           <IconUser size={32} />

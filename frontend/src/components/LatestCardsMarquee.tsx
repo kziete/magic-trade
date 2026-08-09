@@ -25,9 +25,7 @@ function MarqueeCard({ item }: { item: Available }) {
     <Card
       component={Link}
       href={`/inventory/${item.username}`}
-      shadow="sm"
       padding="xs"
-      radius="md"
       withBorder
       w={160}
       style={{ flex: "0 0 160px" }}

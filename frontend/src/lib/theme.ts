@@ -17,69 +17,77 @@ const brand: MantineColorsTuple = [
 
 export const theme = createTheme({
   primaryColor: "brand",
+  primaryShade: { dark: 7 },
   colors: {
     brand,
     dark: [
-      "#ffffff",
-      "#f0f0f0",
-      "#c1c1c1",
-      "#a1a1a1",
-      "#5c5c5c",
-      "#3b3b3b",
-      "#2e2e2e",
-      "#242424",
-      "#1f1f1f",
-      "#141414",
+      "#f5f5f5",
+      "#e4e4e7",
+      "#9a9a9f",
+      "#6b6b70",
+      "#3a3a3f",
+      "#2a2a2e",
+      "#212124",
+      "#18181b",
+      "#111113",
+      "#0a0a0b",
     ],
   },
   fontFamily: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
   headings: {
     fontFamily: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
     fontWeight: "600",
+    sizes: {
+      h1: { fontSize: "28px", lineHeight: "1.25", fontWeight: "650" },
+      h2: { fontSize: "22px", lineHeight: "1.3", fontWeight: "600" },
+      h3: { fontSize: "18px", lineHeight: "1.35", fontWeight: "600" },
+      h4: { fontSize: "16px", lineHeight: "1.4", fontWeight: "550" },
+    },
   },
   radius: {
-    xs: "4px",
-    sm: "6px",
-    md: "8px",
-    lg: "12px",
-    xl: "16px",
+    xs: "2px",
+    sm: "4px",
+    md: "6px",
+    lg: "10px",
+    xl: "999px",
   },
-  defaultRadius: "md",
+  defaultRadius: "sm",
   components: {
     Button: {
       defaultProps: {
-        radius: "md",
+        radius: "sm",
       },
     },
     Card: {
       defaultProps: {
-        radius: "lg",
+        radius: "sm",
+        shadow: "none",
       },
     },
     Select: {
       defaultProps: {
-        radius: "md",
+        radius: "sm",
       },
     },
     TextInput: {
       defaultProps: {
-        radius: "md",
+        radius: "sm",
       },
     },
     Autocomplete: {
       defaultProps: {
-        radius: "md",
+        radius: "sm",
       },
     },
     Badge: {
       defaultProps: {
-        radius: "sm",
+        radius: "xl",
       },
     },
     Table: {
       styles: {
         table: {
-          borderRadius: "var(--mantine-radius-md)",
+          borderRadius: "var(--mantine-radius-sm)",
           overflow: "hidden",
         },
       },

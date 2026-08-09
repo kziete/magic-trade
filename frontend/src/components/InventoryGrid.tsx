@@ -70,9 +70,7 @@ export default function InventoryGrid({
       {items.map((item) => (
         <Card
           key={item.id}
-          shadow="sm"
           padding="xs"
-          radius="md"
           withBorder
           style={{ position: "relative" }}
         >

@@ -28,12 +28,7 @@ export default function Header() {
       <Container size="lg">
         <Group h={60} justify="space-between" wrap="nowrap">
           <Link href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
-            <Text
-              fw={700}
-              size="lg"
-              variant="gradient"
-              gradient={{ from: "blue", to: "cyan", deg: 90 }}
-            >
+            <Text fw={650} size="lg" c="dark.0" style={{ letterSpacing: "-0.01em" }}>
               Magic Trade
             </Text>
           </Link>
