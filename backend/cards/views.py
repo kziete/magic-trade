@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField, Exists
 from django.db.models.functions import Coalesce
 from .models import Card, Variant, Available, Wanted
@@ -288,12 +289,14 @@ class ContactUserView(APIView):
         sender_profile = getattr(request.user, 'profile', None)
         sender_email = (sender_profile.contact_email if sender_profile else None) or request.user.email
 
+        profile_url = f"{settings.FRONTEND_URL}/profile/{request.user.username}"
+
         contact_lines = [f"Email: {sender_email}"]
         if sender_profile and sender_profile.phone:
             contact_lines.append(f"Teléfono: {sender_profile.phone}")
         if sender_profile and sender_profile.facebook_url:
             contact_lines.append(f"Facebook: {sender_profile.facebook_url}")
-        contact_lines.append(f"Perfil: {settings.FRONTEND_URL}/profile/{request.user.username}")
+        contact_lines.append(f"Perfil: {profile_url}")
 
         text_parts = [
             f"{request.user.username} quiere contactarte a través de Magic Trade.",
@@ -305,12 +308,22 @@ class ContactUserView(APIView):
             sender_message,
         ]
 
+        html_body = render_to_string('cards/contact_email.html', {
+            'sender_username': request.user.username,
+            'sender_email': sender_email,
+            'phone': sender_profile.phone if sender_profile else None,
+            'facebook_url': sender_profile.facebook_url if sender_profile else None,
+            'profile_url': profile_url,
+            'message': sender_message,
+        })
+
         try:
             zavu.messages.send(
                 to=to_email,
                 channel="email",
                 subject=f"{request.user.username} quiere contactarte en Magic Trade",
                 text="\n".join(text_parts),
+                html_body=html_body,
                 reply_to=sender_email,
             )
         except ZavudevError:
