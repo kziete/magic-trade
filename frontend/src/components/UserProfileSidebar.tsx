@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Stack, Avatar, Text, Button } from "@mantine/core";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { Card, Stack, Avatar, Text, Button, Modal, Group } from "@mantine/core";
 import { IconUser, IconMessageCircle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
+import { loginRoute } from "@/lib/routes";
 import ContactUserPanel from "@/components/ContactUserPanel";
 
 interface UserProfileSidebarProps {
@@ -12,9 +15,19 @@ interface UserProfileSidebarProps {
 
 export default function UserProfileSidebar({ username }: UserProfileSidebarProps) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [contactOpened, setContactOpened] = useState(false);
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
 
-  const canContact = !!user && user.username !== username;
+  const isOwnProfile = !!user && user.username === username;
+
+  const handleContactClick = () => {
+    if (user) {
+      setContactOpened(true);
+    } else {
+      setLoginModalOpened(true);
+    }
+  };
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -26,11 +39,11 @@ export default function UserProfileSidebar({ username }: UserProfileSidebarProps
           {username}
         </Text>
 
-        {canContact && (
+        {!isOwnProfile && (
           <Button
             variant="light"
             leftSection={<IconMessageCircle size={16} />}
-            onClick={() => setContactOpened(true)}
+            onClick={handleContactClick}
             fullWidth
           >
             Contactar
@@ -43,6 +56,25 @@ export default function UserProfileSidebar({ username }: UserProfileSidebarProps
         opened={contactOpened}
         onClose={() => setContactOpened(false)}
       />
+
+      <Modal
+        opened={loginModalOpened}
+        onClose={() => setLoginModalOpened(false)}
+        title="Inicia sesión"
+        centered
+      >
+        <Stack gap="md">
+          <Text>Necesitas iniciar sesión para contactar a otros usuarios.</Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setLoginModalOpened(false)}>
+              Cancelar
+            </Button>
+            <Button component={Link} href={loginRoute(pathname)}>
+              Iniciar sesión
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Card>
   );
 }
