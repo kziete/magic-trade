@@ -17,6 +17,7 @@ import {
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetLatestAvailableQuery, Available } from "@/lib/api";
+import { userProfileRoutes } from "@/lib/routes";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 import CardImagePreview from "@/components/CardImagePreview";
 
@@ -26,7 +27,7 @@ function MarqueeCard({ item }: { item: Available }) {
   return (
     <Card
       component={Link}
-      href={`/inventory/${item.username}`}
+      href={userProfileRoutes.inventory(item.username)}
       padding="sm"
       withBorder
       w={210}
