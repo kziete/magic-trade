@@ -6,7 +6,6 @@ import {
   Stack,
   Pagination,
   Group,
-  Title,
   Loader,
   Center,
   TextInput,
@@ -74,17 +73,16 @@ function UserWishlistPageContent() {
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="center">
-        <Title order={1}>Wishlist de {username}</Title>
+        <TextInput
+          placeholder="Buscar por nombre..."
+          leftSection={<IconSearch size={16} />}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          maw={400}
+          style={{ flex: 1 }}
+        />
         <InventoryViewToggle value={viewMode} onChange={handleViewModeChange} />
       </Group>
-
-      <TextInput
-        placeholder="Buscar por nombre..."
-        leftSection={<IconSearch size={16} />}
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        maw={400}
-      />
 
       {viewMode === "table" ? (
         <WishlistTable
