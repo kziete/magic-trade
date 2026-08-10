@@ -4,7 +4,6 @@ import type { ComponentProps } from "react";
 import {
   SimpleGrid,
   Card,
-  Image,
   Text,
   Badge,
   Group,
@@ -19,6 +18,7 @@ import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import CardImagePreview from "@/components/CardImagePreview";
 
 interface InventoryGridProps {
   items: Available[];
@@ -94,7 +94,7 @@ export default function InventoryGrid({
           )}
 
           <Card.Section pt="md" px="xs">
-            <Image
+            <CardImagePreview
               src={item.image}
               alt={item.card_name}
               radius="lg"

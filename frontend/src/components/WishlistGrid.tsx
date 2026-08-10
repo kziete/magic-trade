@@ -4,7 +4,6 @@ import type { ComponentProps } from "react";
 import {
   SimpleGrid,
   Card,
-  Image,
   Text,
   Badge,
   Group,
@@ -19,6 +18,7 @@ import { IconTrash, IconCards } from "@tabler/icons-react";
 import Link from "next/link";
 import { Wanted } from "@/lib/api";
 import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import CardImagePreview from "@/components/CardImagePreview";
 
 interface WishlistGridProps {
   items: Wanted[];
@@ -95,7 +95,7 @@ export default function WishlistGrid({
 
           <Card.Section pt="md" px="xs">
             {item.image ? (
-              <Image
+              <CardImagePreview
                 src={item.image}
                 alt={item.card_name}
                 radius="lg"

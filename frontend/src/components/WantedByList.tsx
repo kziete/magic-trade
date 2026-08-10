@@ -6,7 +6,6 @@ import {
   Card,
   Group,
   Text,
-  Image,
   Badge,
   Loader,
   Center,
@@ -18,6 +17,7 @@ import { IconUser } from "@tabler/icons-react";
 import { Wanted } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
 import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import CardImagePreview from "@/components/CardImagePreview";
 
 interface WantedByListProps {
   items?: Wanted[];
@@ -61,7 +61,7 @@ export default function WantedByList({
       {items.map((item) => (
         <Card key={item.id} padding="md" withBorder>
           <Group wrap="nowrap" align="flex-start">
-            {item.image && <Image src={item.image} alt={item.card_name} w={100} radius="sm" />}
+            {item.image && <CardImagePreview src={item.image} alt={item.card_name} w={100} radius="sm" />}
             <Stack gap="xs" style={{ flex: 1 }}>
               <Text fw={500}>{item.card_name}</Text>
               {item.set_name ? (

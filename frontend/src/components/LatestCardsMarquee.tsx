@@ -7,7 +7,6 @@ import {
   Title,
   Text,
   Card,
-  Image,
   Stack,
   Badge,
   Group,
@@ -19,6 +18,7 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetLatestAvailableQuery, Available } from "@/lib/api";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import CardImagePreview from "@/components/CardImagePreview";
 
 const MIN_ITEMS_FOR_SMOOTH_LOOP = 6;
 
@@ -33,7 +33,7 @@ function MarqueeCard({ item }: { item: Available }) {
       style={{ flex: "0 0 210px" }}
     >
       <Card.Section pt="md" px="sm">
-        <Image src={item.image} alt={item.card_name} radius="lg" />
+        <CardImagePreview src={item.image} alt={item.card_name} radius="lg" />
       </Card.Section>
       <Stack gap={6} mt="sm">
         <Text size="sm" fw={600} lineClamp={1}>
