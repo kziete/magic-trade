@@ -73,3 +73,4 @@ class Wanted(models.Model):
     card = models.ForeignKey(Card, on_delete=models.PROTECT)
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT, null=True, blank=True)
     finish = models.CharField(max_length=10, choices=Finish.choices, null=True, blank=True)
+    quantity = models.PositiveIntegerField(default=1)

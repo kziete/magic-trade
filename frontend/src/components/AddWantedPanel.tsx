@@ -12,6 +12,7 @@ import {
   Group,
   Image,
   Center,
+  NumberInput,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
@@ -34,6 +35,7 @@ export default function AddWantedPanel({
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -100,6 +102,7 @@ export default function AddWantedPanel({
     setSelectedCardId(null);
     setSelectedVariant(null);
     setSelectedFinish(null);
+    setQuantity(1);
     setError("");
     setSuccess(false);
   };
@@ -123,6 +126,7 @@ export default function AddWantedPanel({
         card: selectedCardId,
         ...(selectedVariant && { variant: parseInt(selectedVariant, 10) }),
         ...(selectedFinish && { finish: selectedFinish }),
+        quantity,
       }).unwrap();
 
       if (keepOpen) {
@@ -131,6 +135,7 @@ export default function AddWantedPanel({
         setSelectedCardId(null);
         setSelectedVariant(null);
         setSelectedFinish(null);
+        setQuantity(1);
       } else {
         resetForm();
         onClose();
@@ -193,6 +198,14 @@ export default function AddWantedPanel({
           onChange={setSelectedFinish}
           disabled={!selectedCardId}
           clearable
+        />
+
+        <NumberInput
+          label="Cantidad"
+          min={1}
+          value={quantity}
+          onChange={(value) => setQuantity(typeof value === "number" ? value : 1)}
+          disabled={!selectedCardId}
         />
 
         <Group grow>

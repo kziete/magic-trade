@@ -36,13 +36,15 @@ class AvailableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Available
-        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username', 'wanted_count']
+        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username', 'wanted_count', 'quantity']
 
 
 class AvailableCreateSerializer(serializers.ModelSerializer):
+    quantity = serializers.IntegerField(min_value=1, default=1)
+
     class Meta:
         model = Available
-        fields = ['variant', 'finish', 'condition', 'language']
+        fields = ['variant', 'finish', 'condition', 'language', 'quantity']
 
 
 class WantedSerializer(serializers.ModelSerializer):
@@ -56,7 +58,7 @@ class WantedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wanted
-        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username', 'matches_count']
+        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username', 'matches_count', 'quantity']
 
     def get_variant_id(self, obj):
         return obj.variant.id if obj.variant else None
@@ -69,9 +71,11 @@ class WantedSerializer(serializers.ModelSerializer):
 
 
 class WantedCreateSerializer(serializers.ModelSerializer):
+    quantity = serializers.IntegerField(min_value=1, default=1)
+
     class Meta:
         model = Wanted
-        fields = ['card', 'variant', 'finish']
+        fields = ['card', 'variant', 'finish', 'quantity']
 
 
 class ContactUserSerializer(serializers.Serializer):

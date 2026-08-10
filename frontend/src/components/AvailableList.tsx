@@ -71,6 +71,7 @@ export default function AvailableList({
                 </Badge>
                 <Badge color="blue">{item.condition}</Badge>
                 <Badge color="grape">{item.language}</Badge>
+                <Badge variant="outline" color="gray">x{item.quantity}</Badge>
               </Group>
               <Group gap="xs">
                 <Avatar size="sm" radius="xl">

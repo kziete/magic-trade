@@ -12,6 +12,7 @@ import {
   Group,
   Image,
   Center,
+  NumberInput,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
@@ -36,6 +37,7 @@ export default function AddInventoryPanel({
   const [selectedFinish, setSelectedFinish] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>("EN");
+  const [quantity, setQuantity] = useState<number>(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -105,6 +107,7 @@ export default function AddInventoryPanel({
     setSelectedFinish(null);
     setSelectedCondition(null);
     setSelectedLanguage("EN");
+    setQuantity(1);
     setError("");
     setSuccess(false);
   };
@@ -129,6 +132,7 @@ export default function AddInventoryPanel({
         finish: selectedFinish,
         condition: selectedCondition,
         language: selectedLanguage,
+        quantity,
       }).unwrap();
 
       if (keepOpen) {
@@ -138,6 +142,7 @@ export default function AddInventoryPanel({
         setSelectedVariant(null);
         setSelectedFinish(null);
         setSelectedCondition(null);
+        setQuantity(1);
       } else {
         resetForm();
         onClose();
@@ -228,6 +233,14 @@ export default function AddInventoryPanel({
           ]}
           value={selectedLanguage}
           onChange={setSelectedLanguage}
+          disabled={!selectedVariant}
+        />
+
+        <NumberInput
+          label="Cantidad"
+          min={1}
+          value={quantity}
+          onChange={(value) => setQuantity(typeof value === "number" ? value : 1)}
           disabled={!selectedVariant}
         />
 

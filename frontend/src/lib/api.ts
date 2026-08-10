@@ -67,6 +67,7 @@ export interface Available {
   language: string;
   username: string;
   wanted_count: number;
+  quantity: number;
 }
 
 export interface Variant {
@@ -98,6 +99,7 @@ export interface CreateAvailableRequest {
   finish: string;
   condition: string;
   language: string;
+  quantity: number;
 }
 
 export interface Wanted {
@@ -110,12 +112,14 @@ export interface Wanted {
   username: string;
   matches_count: number;
   card_id: number;
+  quantity: number;
 }
 
 export interface CreateWantedRequest {
   card: number;
   variant?: number;
   finish?: string;
+  quantity: number;
 }
 
 export interface ImportInventoryResult {

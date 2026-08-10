@@ -71,15 +71,18 @@ export default function WantedByList({
                   Cualquier edición
                 </Text>
               )}
-              {item.finish ? (
-                <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
-                  {item.finish}
-                </Badge>
-              ) : (
-                <Badge variant="outline" color="gray">
-                  Sin preferencia
-                </Badge>
-              )}
+              <Group gap="xs">
+                {item.finish ? (
+                  <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
+                    {item.finish}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" color="gray">
+                    Sin preferencia
+                  </Badge>
+                )}
+                <Badge variant="outline" color="gray">x{item.quantity}</Badge>
+              </Group>
               <Group gap="xs">
                 <Avatar size="sm" radius="xl">
                   <IconUser size={16} />

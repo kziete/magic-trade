@@ -63,6 +63,7 @@ export default function InventoryTable({
           <Table.Th>Finish</Table.Th>
           <Table.Th>Condición</Table.Th>
           <Table.Th>Idioma</Table.Th>
+          <Table.Th>Cantidad</Table.Th>
           {showMatchCount && <Table.Th>Buscan</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
@@ -86,6 +87,9 @@ export default function InventoryTable({
             </Table.Td>
             <Table.Td>
               <Badge size="sm" color="grape">{item.language}</Badge>
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm">{item.quantity}</Text>
             </Table.Td>
             {showMatchCount && (
               <Table.Td>

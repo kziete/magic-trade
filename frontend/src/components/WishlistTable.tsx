@@ -61,6 +61,7 @@ export default function WishlistTable({
           <Table.Th>Carta</Table.Th>
           <Table.Th>Set</Table.Th>
           <Table.Th>Finish</Table.Th>
+          <Table.Th>Cantidad</Table.Th>
           {showMatchCount && <Table.Th>Coincidencias</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
@@ -86,6 +87,9 @@ export default function WishlistTable({
               ) : (
                 <Badge size="sm" variant="outline" color="gray">Sin preferencia</Badge>
               )}
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm">{item.quantity}</Text>
             </Table.Td>
             {showMatchCount && (
               <Table.Td>

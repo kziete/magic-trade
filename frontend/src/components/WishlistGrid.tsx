@@ -137,6 +137,9 @@ export default function WishlistGrid({
                   Sin preferencia
                 </Badge>
               )}
+              <Badge size="xs" variant="outline" color="gray">
+                x{item.quantity}
+              </Badge>
               {showMatchCount && (
                 item.matches_count > 0 ? (
                   <Anchor

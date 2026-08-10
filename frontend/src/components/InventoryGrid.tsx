@@ -117,6 +117,9 @@ export default function InventoryGrid({
               <Badge size="xs" color="grape">
                 {item.language}
               </Badge>
+              <Badge size="xs" variant="outline" color="gray">
+                x{item.quantity}
+              </Badge>
               {showMatchCount && (
                 item.wanted_count > 0 ? (
                   <Anchor
