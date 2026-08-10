@@ -11,6 +11,7 @@ import {
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Wanted } from "@/lib/api";
+import CardHoverPreview from "@/components/CardHoverPreview";
 
 interface WishlistTableProps {
   items: Wanted[];
@@ -69,7 +70,9 @@ export default function WishlistTable({
         {items.map((item) => (
           <Table.Tr key={item.id}>
             <Table.Td>
-              <Text size="sm" fw={500}>{item.card_name}</Text>
+              <CardHoverPreview src={item.image} alt={item.card_name}>
+                <Text size="sm" fw={500}>{item.card_name}</Text>
+              </CardHoverPreview>
             </Table.Td>
             <Table.Td>
               {item.set_name ? (

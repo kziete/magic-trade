@@ -11,6 +11,7 @@ import {
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
+import CardHoverPreview from "@/components/CardHoverPreview";
 
 interface InventoryTableProps {
   items: Available[];
@@ -71,7 +72,9 @@ export default function InventoryTable({
         {items.map((item) => (
           <Table.Tr key={item.id}>
             <Table.Td>
-              <Text size="sm" fw={500}>{item.card_name}</Text>
+              <CardHoverPreview src={item.image} alt={item.card_name}>
+                <Text size="sm" fw={500}>{item.card_name}</Text>
+              </CardHoverPreview>
             </Table.Td>
             <Table.Td>
               <Text size="sm" c="dimmed">{item.set_name}</Text>
