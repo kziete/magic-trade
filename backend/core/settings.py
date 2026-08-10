@@ -266,5 +266,10 @@ CELERY_TIMEZONE = TIME_ZONE
 # again in Celery 6, but 5.x still needs it set explicitly).
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+# Single source of truth for the wishlist-notification cadence -- read by
+# both the beat schedule (core/celery.py) and the lookback window in
+# cards.tasks.check_new_wishlist_matches, so they can't drift out of sync.
+WISHLIST_NOTIFICATION_INTERVAL_MINUTES = int(os.environ.get('WISHLIST_NOTIFICATION_INTERVAL_MINUTES', '60'))
+
 # Unhandled-exception email alerts (core.error_reporting.ExceptionAlertMiddleware)
 ERROR_ALERT_EMAIL = os.environ.get('ERROR_ALERT_EMAIL', 'kziete@gmail.com')

@@ -28,6 +28,22 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - WISHLIST_NOTIFICATION_INTERVAL_MINUTES=5
+
+  celery-beat:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    command: celery -A core beat -l info
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - WISHLIST_NOTIFICATION_INTERVAL_MINUTES=5
 
   redis:
     image: redis:7-alpine

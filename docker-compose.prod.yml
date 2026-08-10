@@ -38,6 +38,18 @@ services:
       - db
       - redis
 
+  celery-beat:
+    # Same shared image as `celery` -- see comment above.
+    image: magic-trade-backend
+    restart: unless-stopped
+    entrypoint: []
+    command: celery -A core beat -l info
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+      - redis
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
