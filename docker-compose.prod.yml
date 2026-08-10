@@ -1,11 +1,29 @@
+x-logging: &default-logging
+  # Docker's json-file driver keeps logs forever by default. On a small
+  # droplet, celery's `-l info` running 24/7 (plus gunicorn/postgres output)
+  # can quietly fill the disk over weeks, which is enough on its own to wedge
+  # the whole host (new SSH sessions, systemd, etc. all need disk to work).
+  # Capped at 10m x 3 files = 30m max per service.
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    # mem_limit caps below are sized for a 2GB droplet (see deploy.sh, which
+    # already assumes a small droplet for its build-time memory caps). None
+    # of these existed before, so any one service could balloon and OOM the
+    # whole host -- including sshd, which is why the box became unreachable
+    # instead of just losing one container. Adjust if the droplet is resized.
+    mem_limit: 300m
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.prod
+    logging: *default-logging
 
   web:
     build:
@@ -13,6 +31,7 @@ services:
       dockerfile: Dockerfile.prod
     image: magic-trade-backend
     restart: unless-stopped
+    mem_limit: 400m
     env_file:
       - .env.prod
     depends_on:
@@ -24,12 +43,14 @@ services:
       timeout: 3s
       retries: 5
       start_period: 20s
+    logging: *default-logging
 
   celery:
     # No build: block on purpose -- this shares the image `web` builds/tags
     # above (same Dockerfile/context) instead of rebuilding it a second time.
     image: magic-trade-backend
     restart: unless-stopped
+    mem_limit: 200m
     entrypoint: []
     command: celery -A core worker -l info
     env_file:
@@ -37,11 +58,13 @@ services:
     depends_on:
       - db
       - redis
+    logging: *default-logging
 
   celery-beat:
     # Same shared image as `celery` -- see comment above.
     image: magic-trade-backend
     restart: unless-stopped
+    mem_limit: 100m
     entrypoint: []
     command: celery -A core beat -l info
     env_file:
@@ -49,13 +72,16 @@ services:
     depends_on:
       - db
       - redis
+    logging: *default-logging
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    mem_limit: 150m
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+    logging: *default-logging
 
   frontend:
     build:
@@ -64,6 +90,7 @@ services:
       args:
         - BACKEND_INTERNAL_URL=http://web:8000
     restart: unless-stopped
+    mem_limit: 300m
     environment:
       - BACKEND_INTERNAL_URL=http://web:8000
     depends_on:
@@ -74,10 +101,12 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    logging: *default-logging
 
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    mem_limit: 100m
     ports:
       - "80:80"
       - "443:443"
@@ -89,10 +118,12 @@ services:
       - .env.prod
     depends_on:
       - frontend
+    logging: *default-logging
 
   db_backup:
     image: postgres:16-alpine
     restart: unless-stopped
+    mem_limit: 150m
     volumes:
       - ./backups:/backups
     env_file:
@@ -111,6 +142,7 @@ services:
           echo "[$$TS] Backup complete. Sleeping 24h.";
           sleep 86400;
         done
+    logging: *default-logging
 
 volumes:
   postgres_data:
