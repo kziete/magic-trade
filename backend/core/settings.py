@@ -81,6 +81,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'core.error_reporting.ExceptionAlertMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -264,3 +265,6 @@ CELERY_TIMEZONE = TIME_ZONE
 # retry instead of the worker exiting immediately (this becomes the default
 # again in Celery 6, but 5.x still needs it set explicitly).
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Unhandled-exception email alerts (core.error_reporting.ExceptionAlertMiddleware)
+ERROR_ALERT_EMAIL = os.environ.get('ERROR_ALERT_EMAIL', 'kziete@gmail.com')
