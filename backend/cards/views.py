@@ -13,7 +13,7 @@ from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, Intege
 from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
 from .models import Card, Variant, Available, Wanted
-from .serializers import CardSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
+from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 
@@ -75,9 +75,33 @@ class CardListView(ListAPIView):
 
 
 class CardDetailView(RetrieveAPIView):
-    serializer_class = CardSerializer
+    serializer_class = CardDetailSerializer
     queryset = Card.objects.all()
     lookup_field = 'pk'
+
+
+class CardWantedListView(ListAPIView):
+    """Wanted rows for a card, for the authenticated viewer -- only
+    meaningful (non-empty) if the viewer has an Available row for this card,
+    since that's what makes these "people who'd trade with you"."""
+    serializer_class = WantedSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        card_id = self.kwargs['card_id']
+        viewer = self.request.user
+        has_it = Available.objects.filter(user=viewer, variant__card_id=card_id).exists()
+        if not has_it:
+            return Wanted.objects.none()
+
+        queryset = (
+            Wanted.objects.filter(card_id=card_id)
+            .exclude(user=viewer)
+            .select_related('user', 'card', 'variant__card_set')
+            .order_by('-id')
+        )
+        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
 class VariantListView(ListAPIView):

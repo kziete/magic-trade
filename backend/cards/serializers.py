@@ -16,6 +16,31 @@ class CardSerializer(serializers.ModelSerializer):
         return f'/api/cards/{obj.id}/variants/'
 
 
+class CardDetailSerializer(CardSerializer):
+    viewer_has_it = serializers.SerializerMethodField()
+    viewer_wants_it = serializers.SerializerMethodField()
+
+    class Meta(CardSerializer.Meta):
+        fields = CardSerializer.Meta.fields + ['viewer_has_it', 'viewer_wants_it']
+
+    def _viewer(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return user if user and user.is_authenticated else None
+
+    def get_viewer_has_it(self, obj):
+        viewer = self._viewer()
+        if not viewer:
+            return False
+        return Available.objects.filter(user=viewer, variant__card=obj).exists()
+
+    def get_viewer_wants_it(self, obj):
+        viewer = self._viewer()
+        if not viewer:
+            return False
+        return Wanted.objects.filter(user=viewer, card=obj).exists()
+
+
 class VariantSerializer(serializers.ModelSerializer):
     set_name = serializers.CharField(source='card_set.name', read_only=True)
     set_short = serializers.CharField(source='card_set.short', read_only=True)

@@ -55,6 +55,11 @@ export interface Card {
   variants_url: string;
 }
 
+export interface CardDetail extends Card {
+  viewer_has_it: boolean;
+  viewer_wants_it: boolean;
+}
+
 export interface Available {
   id: number;
   card_id: number;
@@ -142,6 +147,13 @@ export const cardsApi = createApi({
     }),
     getCard: builder.query<Card, number>({
       query: (cardId) => `cards/${cardId}/`,
+    }),
+    getCardDetail: builder.query<CardDetail, number>({
+      query: (cardId) => `cards/${cardId}/`,
+    }),
+    getCardWantedBy: builder.query<Wanted[], number>({
+      query: (cardId) => `cards/${cardId}/wanted/`,
+      providesTags: ["Wanted"],
     }),
     getVariants: builder.query<Variant[], number>({
       query: (cardId) => `cards/${cardId}/variants/`,
@@ -270,6 +282,8 @@ export const cardsApi = createApi({
 export const {
   useSearchCardsQuery,
   useGetCardQuery,
+  useGetCardDetailQuery,
+  useGetCardWantedByQuery,
   useGetVariantsQuery,
   useGetAvailableQuery,
   useGetLatestAvailableQuery,

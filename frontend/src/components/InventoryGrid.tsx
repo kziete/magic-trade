@@ -19,6 +19,7 @@ import Link from "next/link";
 import { Available } from "@/lib/api";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 import CardImagePreview from "@/components/CardImagePreview";
+import { cardRoutes } from "@/lib/routes";
 
 interface InventoryGridProps {
   items: Available[];
@@ -132,7 +133,7 @@ export default function InventoryGrid({
               {showMatchCount && item.wanted_count > 0 && (
                 <Badge
                   component={Link}
-                  href={`/cards/${item.card_id}?available=${item.id}`}
+                  href={cardRoutes.matches(item.card_id)}
                   size="xs"
                   variant="filled"
                   color="teal"

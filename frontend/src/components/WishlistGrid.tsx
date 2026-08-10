@@ -19,6 +19,7 @@ import Link from "next/link";
 import { Wanted } from "@/lib/api";
 import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 import CardImagePreview from "@/components/CardImagePreview";
+import { cardRoutes } from "@/lib/routes";
 
 interface WishlistGridProps {
   items: Wanted[];
@@ -144,7 +145,7 @@ export default function WishlistGrid({
               {showMatchCount && item.matches_count > 0 && (
                 <Badge
                   component={Link}
-                  href={`/cards/${item.card_id}?wanted=${item.id}`}
+                  href={cardRoutes.matches(item.card_id)}
                   size="xs"
                   variant="filled"
                   color="teal"

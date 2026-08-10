@@ -12,6 +12,7 @@ import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Wanted } from "@/lib/api";
 import CardHoverPreview from "@/components/CardHoverPreview";
+import { cardRoutes } from "@/lib/routes";
 
 interface WishlistTableProps {
   items: Wanted[];
@@ -98,7 +99,7 @@ export default function WishlistTable({
                 {item.matches_count > 0 ? (
                   <Badge
                     component={Link}
-                    href={`/cards/${item.card_id}?wanted=${item.id}`}
+                    href={cardRoutes.matches(item.card_id)}
                     size="sm"
                     variant="filled"
                     color="teal"

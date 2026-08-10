@@ -4,6 +4,11 @@ export const userProfileRoutes = {
   matches: (username: string) => `/profile/${username}/matches`,
 };
 
+export const cardRoutes = {
+  detail: (cardId: number) => `/cards/${cardId}`,
+  matches: (cardId: number) => `/cards/${cardId}/matches`,
+};
+
 // Only allow same-site relative paths as a redirect target, so a crafted
 // `?redirect=` (which round-trips through the OAuth `state` param) can't be
 // used to bounce a logged-in user to an external site.

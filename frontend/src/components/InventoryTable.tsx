@@ -11,6 +11,7 @@ import {
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
+import { cardRoutes } from "@/lib/routes";
 import CardHoverPreview from "@/components/CardHoverPreview";
 
 interface InventoryTableProps {
@@ -98,7 +99,7 @@ export default function InventoryTable({
                 {item.wanted_count > 0 ? (
                   <Badge
                     component={Link}
-                    href={`/cards/${item.card_id}?available=${item.id}`}
+                    href={cardRoutes.matches(item.card_id)}
                     size="sm"
                     variant="filled"
                     color="teal"
