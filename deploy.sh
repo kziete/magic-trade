@@ -96,6 +96,14 @@ fi
 echo "==> Rolling out web..."
 docker rollout -f "$COMPOSE_FILE" web -t 40
 
+# celery shares the image web just built/tagged (see docker-compose.prod.yml),
+# so no separate build step is needed here. It skips docker-rollout too: it
+# has no healthcheck (which rollout needs to know when to cut over) and isn't
+# serving live HTTP traffic, so a plain recreate is enough -- queued tasks
+# aren't lost across the brief restart since Redis persists them to disk.
+echo "==> Restarting celery worker with the new image..."
+docker compose -f "$COMPOSE_FILE" up -d --no-deps celery
+
 echo "==> Rolling out frontend..."
 docker rollout -f "$COMPOSE_FILE" frontend -t 40
 
