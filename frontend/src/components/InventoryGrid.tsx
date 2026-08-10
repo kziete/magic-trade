@@ -13,7 +13,6 @@ import {
   Loader,
   Center,
   Box,
-  Anchor,
   Tooltip,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
@@ -131,15 +130,16 @@ export default function InventoryGrid({
                 </Badge>
               )}
               {showMatchCount && item.wanted_count > 0 && (
-                <Anchor
+                <Badge
                   component={Link}
                   href={`/cards/${item.card_id}?available=${item.id}`}
-                  underline="never"
+                  size="xs"
+                  variant="filled"
+                  color="teal"
+                  style={{ cursor: "pointer", textDecoration: "none" }}
                 >
-                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                    {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
-                  </Badge>
-                </Anchor>
+                  {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
+                </Badge>
               )}
             </Group>
           </Stack>

@@ -13,7 +13,6 @@ import {
   Loader,
   Center,
   Box,
-  Anchor,
   Tooltip,
 } from "@mantine/core";
 import { IconTrash, IconCards } from "@tabler/icons-react";
@@ -143,15 +142,16 @@ export default function WishlistGrid({
                 </Badge>
               )}
               {showMatchCount && item.matches_count > 0 && (
-                <Anchor
+                <Badge
                   component={Link}
                   href={`/cards/${item.card_id}?wanted=${item.id}`}
-                  underline="never"
+                  size="xs"
+                  variant="filled"
+                  color="teal"
+                  style={{ cursor: "pointer", textDecoration: "none" }}
                 >
-                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                    {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
-                  </Badge>
-                </Anchor>
+                  {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+                </Badge>
               )}
             </Group>
           </Stack>

@@ -7,7 +7,6 @@ import {
   Center,
   Text,
   ActionIcon,
-  Anchor,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
@@ -94,15 +93,16 @@ export default function InventoryTable({
             {showMatchCount && (
               <Table.Td>
                 {item.wanted_count > 0 ? (
-                  <Anchor
+                  <Badge
                     component={Link}
                     href={`/cards/${item.card_id}?available=${item.id}`}
-                    underline="never"
+                    size="sm"
+                    variant="filled"
+                    color="teal"
+                    style={{ cursor: "pointer", textDecoration: "none" }}
                   >
-                    <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                      {item.wanted_count}
-                    </Badge>
-                  </Anchor>
+                    {item.wanted_count}
+                  </Badge>
                 ) : (
                   <Badge size="sm" variant="outline" color="gray">
                     {item.wanted_count}

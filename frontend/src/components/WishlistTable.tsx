@@ -7,7 +7,6 @@ import {
   Center,
   Text,
   ActionIcon,
-  Anchor,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
@@ -94,15 +93,16 @@ export default function WishlistTable({
             {showMatchCount && (
               <Table.Td>
                 {item.matches_count > 0 ? (
-                  <Anchor
+                  <Badge
                     component={Link}
                     href={`/cards/${item.card_id}?wanted=${item.id}`}
-                    underline="never"
+                    size="sm"
+                    variant="filled"
+                    color="teal"
+                    style={{ cursor: "pointer", textDecoration: "none" }}
                   >
-                    <Badge size="sm" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                      {item.matches_count}
-                    </Badge>
-                  </Anchor>
+                    {item.matches_count}
+                  </Badge>
                 ) : (
                   <Badge size="sm" variant="outline" color="gray">
                     {item.matches_count}
