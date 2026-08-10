@@ -31,6 +31,10 @@ backups/
 *.swp
 *.swo
 
+# Celery beat (local schedule persistence db, runtime state not source)
+celerybeat-schedule
+celerybeat.pid
+
 # Docker
 .docker/
 
