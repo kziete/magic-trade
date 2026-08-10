@@ -14,10 +14,12 @@ import {
   Center,
   Box,
   Anchor,
+  Tooltip,
 } from "@mantine/core";
 import { IconTrash, IconCards } from "@tabler/icons-react";
 import Link from "next/link";
 import { Wanted } from "@/lib/api";
+import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 
 interface WishlistGridProps {
   items: Wanted[];
@@ -128,34 +130,28 @@ export default function WishlistGrid({
               </Text>
             )}
             <Group gap={4} wrap="wrap">
-              {item.finish ? (
-                <Badge size="xs" color={item.finish === "foil" ? "yellow" : "gray"}>
-                  {item.finish}
-                </Badge>
-              ) : (
+              {item.finish && (
+                <Tooltip label={item.finish === "foil" ? "Foil" : "Non-foil"}>
+                  <Badge size="xs" variant="outline" color={item.finish === "foil" ? "yellow" : "gray"}>
+                    {item.finish === "foil" ? "F" : "NF"}
+                  </Badge>
+                </Tooltip>
+              )}
+              {item.quantity > DEFAULT_QUANTITY && (
                 <Badge size="xs" variant="outline" color="gray">
-                  Sin preferencia
+                  ×{item.quantity}
                 </Badge>
               )}
-              <Badge size="xs" variant="outline" color="gray">
-                x{item.quantity}
-              </Badge>
-              {showMatchCount && (
-                item.matches_count > 0 ? (
-                  <Anchor
-                    component={Link}
-                    href={`/cards/${item.card_id}?wanted=${item.id}`}
-                    underline="never"
-                  >
-                    <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                      {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
-                    </Badge>
-                  </Anchor>
-                ) : (
-                  <Badge size="xs" variant="outline" color="gray">
+              {showMatchCount && item.matches_count > 0 && (
+                <Anchor
+                  component={Link}
+                  href={`/cards/${item.card_id}?wanted=${item.id}`}
+                  underline="never"
+                >
+                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
                     {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
                   </Badge>
-                )
+                </Anchor>
               )}
             </Group>
           </Stack>

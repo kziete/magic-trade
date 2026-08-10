@@ -12,10 +12,12 @@ import {
   Center,
   Avatar,
   Anchor,
+  Tooltip,
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { Wanted } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
+import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 
 interface WantedByListProps {
   items?: Wanted[];
@@ -72,16 +74,16 @@ export default function WantedByList({
                 </Text>
               )}
               <Group gap="xs">
-                {item.finish ? (
-                  <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
-                    {item.finish}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" color="gray">
-                    Sin preferencia
-                  </Badge>
+                {item.finish && (
+                  <Tooltip label={item.finish === "foil" ? "Foil" : "Non-foil"}>
+                    <Badge variant="outline" color={item.finish === "foil" ? "yellow" : "gray"}>
+                      {item.finish === "foil" ? "F" : "NF"}
+                    </Badge>
+                  </Tooltip>
                 )}
-                <Badge variant="outline" color="gray">x{item.quantity}</Badge>
+                {item.quantity > DEFAULT_QUANTITY && (
+                  <Badge variant="outline" color="gray">×{item.quantity}</Badge>
+                )}
               </Group>
               <Group gap="xs">
                 <Avatar size="sm" radius="xl">

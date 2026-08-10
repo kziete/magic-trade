@@ -12,10 +12,12 @@ import {
   Center,
   Avatar,
   Anchor,
+  Tooltip,
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { Available } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
+import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 
 interface AvailableListProps {
   items?: Available[];
@@ -66,12 +68,20 @@ export default function AvailableList({
                 {item.set_name}
               </Text>
               <Group gap="xs">
-                <Badge color={item.finish === "foil" ? "yellow" : "gray"}>
-                  {item.finish}
-                </Badge>
-                <Badge color="blue">{item.condition}</Badge>
-                <Badge color="grape">{item.language}</Badge>
-                <Badge variant="outline" color="gray">x{item.quantity}</Badge>
+                {item.finish !== DEFAULT_FINISH && (
+                  <Tooltip label="Foil">
+                    <Badge variant="outline" color="yellow">F</Badge>
+                  </Tooltip>
+                )}
+                {item.condition !== DEFAULT_CONDITION && (
+                  <Badge variant="outline" color="gray">{item.condition}</Badge>
+                )}
+                {item.language !== DEFAULT_LANGUAGE && (
+                  <Badge variant="outline" color="gray">{item.language}</Badge>
+                )}
+                {item.quantity > DEFAULT_QUANTITY && (
+                  <Badge variant="outline" color="gray">×{item.quantity}</Badge>
+                )}
               </Group>
               <Group gap="xs">
                 <Avatar size="sm" radius="xl">

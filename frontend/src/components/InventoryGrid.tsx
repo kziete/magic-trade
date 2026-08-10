@@ -14,10 +14,12 @@ import {
   Center,
   Box,
   Anchor,
+  Tooltip,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
+import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 
 interface InventoryGridProps {
   items: Available[];
@@ -108,34 +110,36 @@ export default function InventoryGrid({
               {item.set_name}
             </Text>
             <Group gap={4} wrap="wrap">
-              <Badge size="xs" color={item.finish === "foil" ? "yellow" : "gray"}>
-                {item.finish}
-              </Badge>
-              <Badge size="xs" color="blue">
-                {item.condition}
-              </Badge>
-              <Badge size="xs" color="grape">
-                {item.language}
-              </Badge>
-              <Badge size="xs" variant="outline" color="gray">
-                x{item.quantity}
-              </Badge>
-              {showMatchCount && (
-                item.wanted_count > 0 ? (
-                  <Anchor
-                    component={Link}
-                    href={`/cards/${item.card_id}?available=${item.id}`}
-                    underline="never"
-                  >
-                    <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
-                      {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
-                    </Badge>
-                  </Anchor>
-                ) : (
-                  <Badge size="xs" variant="outline" color="gray">
+              {item.finish !== DEFAULT_FINISH && (
+                <Tooltip label="Foil">
+                  <Badge size="xs" variant="outline" color="yellow">F</Badge>
+                </Tooltip>
+              )}
+              {item.condition !== DEFAULT_CONDITION && (
+                <Badge size="xs" variant="outline" color="gray">
+                  {item.condition}
+                </Badge>
+              )}
+              {item.language !== DEFAULT_LANGUAGE && (
+                <Badge size="xs" variant="outline" color="gray">
+                  {item.language}
+                </Badge>
+              )}
+              {item.quantity > DEFAULT_QUANTITY && (
+                <Badge size="xs" variant="outline" color="gray">
+                  ×{item.quantity}
+                </Badge>
+              )}
+              {showMatchCount && item.wanted_count > 0 && (
+                <Anchor
+                  component={Link}
+                  href={`/cards/${item.card_id}?available=${item.id}`}
+                  underline="never"
+                >
+                  <Badge size="xs" variant="filled" color="teal" style={{ cursor: "pointer" }}>
                     {item.wanted_count} busca{item.wanted_count === 1 ? "" : "n"}
                   </Badge>
-                )
+                </Anchor>
               )}
             </Group>
           </Stack>

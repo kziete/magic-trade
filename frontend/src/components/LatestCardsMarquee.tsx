@@ -14,9 +14,11 @@ import {
   Anchor,
   Loader,
   Center,
+  Tooltip,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useGetLatestAvailableQuery, Available } from "@/lib/api";
+import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 
 const MIN_ITEMS_FOR_SMOOTH_LOOP = 6;
 
@@ -41,12 +43,20 @@ function MarqueeCard({ item }: { item: Available }) {
           {item.set_name}
         </Text>
         <Group gap={4} wrap="wrap">
-          <Badge size="sm" color={item.finish === "foil" ? "yellow" : "gray"}>
-            {item.finish}
-          </Badge>
-          <Badge size="sm" color="blue">
-            {item.condition}
-          </Badge>
+          {item.finish !== DEFAULT_FINISH && (
+            <Tooltip label="Foil">
+              <Badge size="sm" variant="outline" color="yellow">F</Badge>
+            </Tooltip>
+          )}
+          {item.condition !== DEFAULT_CONDITION && (
+            <Badge size="sm" variant="outline" color="gray">{item.condition}</Badge>
+          )}
+          {item.language !== DEFAULT_LANGUAGE && (
+            <Badge size="sm" variant="outline" color="gray">{item.language}</Badge>
+          )}
+          {item.quantity > DEFAULT_QUANTITY && (
+            <Badge size="sm" variant="outline" color="gray">×{item.quantity}</Badge>
+          )}
         </Group>
         <Anchor component="span" size="xs" c="dimmed" lineClamp={1}>
           {item.username}
