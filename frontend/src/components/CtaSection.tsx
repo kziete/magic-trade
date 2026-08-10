@@ -26,7 +26,7 @@ const CTA_ITEMS: CtaItem[] = [
   {
     id: "register-wanted",
     title: "¿No encuentras lo que buscas?",
-    description: "Regístralas y e avisaremos cuando esten disponibles.",
+    description: "Regístralas y te avisaremos cuando esten disponibles.",
     buttonLabel: "Crear alerta",
     href: "/wishlist?open=add",
     icon: IconBellPlus,
