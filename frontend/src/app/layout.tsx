@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import StoreProvider from "@/lib/StoreProvider";
 import AuthProvider from "@/lib/AuthProvider";
 import Header from "@/components/Header";
 import { theme } from "@/lib/theme";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +27,7 @@ export default function RootLayout({
       <body>
         <StoreProvider>
           <MantineProvider theme={theme} defaultColorScheme="dark">
+            <Notifications position="bottom-right" />
             <AuthProvider>
               <Header />
               {children}

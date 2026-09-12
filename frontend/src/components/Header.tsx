@@ -7,6 +7,7 @@ import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart, IconEye } f
 import { useAuth } from "@/lib/AuthProvider";
 import { userProfileRoutes } from "@/lib/routes";
 import CardSearch from "@/components/CardSearch";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Header() {
   const router = useRouter();
@@ -68,6 +69,8 @@ export default function Header() {
 
             {user ? (
               <>
+                <NotificationBell />
+
                 {/* Desktop */}
                 <Box visibleFrom="sm">
                   <Menu shadow="md" width={200}>

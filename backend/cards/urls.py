@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView
+from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView
 
 urlpatterns = [
     path('cards/', CardListView.as_view()),
@@ -21,4 +21,9 @@ urlpatterns = [
     path('users/<str:username>/contact/', ContactUserView.as_view()),
     path('users/<str:username>/matches/available/', UserMatchesAvailableView.as_view()),
     path('users/<str:username>/matches/wanted/', UserMatchesWantedView.as_view()),
+    path('notifications/poll/', NotificationPollView.as_view()),
+    path('contacts/', ContactHistoryListView.as_view()),
+    path('contacts/read/', ContactMarkReadView.as_view()),
+    path('contacts/<int:pk>/read/', ContactDetailView.as_view()),
+    path('contacts/<int:pk>/', ContactRetrieveView.as_view()),
 ]

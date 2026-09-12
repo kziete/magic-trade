@@ -9,11 +9,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, IntegerField, Exists
 from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
-from .models import Card, Variant, Available, Wanted
-from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer
+from accounts.models import Profile
+from .models import Card, Variant, Available, Wanted, Contact
+from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 
@@ -309,6 +311,12 @@ class ContactUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        Contact.objects.create(
+            sender=request.user,
+            recipient=target_user,
+            message=sender_message,
+        )
+
         sender_profile = getattr(request.user, 'profile', None)
         sender_email = (sender_profile.contact_email if sender_profile else None) or request.user.email
 
@@ -355,6 +363,74 @@ class ContactUserView(APIView):
             )
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+class NotificationPollView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        Profile.objects.filter(user=request.user).update(last_seen=timezone.now())
+
+        unread = Contact.objects.filter(
+            recipient=request.user, read_at__isnull=True
+        ).select_related('sender').order_by('-created_at')[:50]
+
+        return Response({
+            'unread_count': Contact.objects.filter(
+                recipient=request.user, read_at__isnull=True
+            ).count(),
+            'unread': ContactSerializer(unread, many=True).data,
+        })
+
+
+class ContactRetrieveView(APIView):
+    """GET /api/contacts/<pk>/ -- detalle de un contacto recibido, incluye
+    los datos de contacto del remitente. Marca la notificación como leída."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        contact = get_object_or_404(
+            Contact.objects.select_related('sender'), pk=pk, recipient=request.user
+        )
+        if contact.read_at is None:
+            contact.read_at = timezone.now()
+            contact.save(update_fields=['read_at'])
+        return Response(ContactDetailSerializer(contact).data)
+
+
+class ContactHistoryListView(ListAPIView):
+    serializer_class = ContactSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Contact.objects.filter(
+            recipient=self.request.user
+        ).select_related('sender').order_by('-created_at')
+
+
+class ContactMarkReadView(APIView):
+    """POST /api/contacts/read/ -- marca todas las notificaciones no leídas
+    del usuario autenticado."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        Contact.objects.filter(
+            recipient=request.user, read_at__isnull=True
+        ).update(read_at=timezone.now())
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ContactDetailView(APIView):
+    """POST /api/contacts/<pk>/read/ -- marca una notificación puntual como
+    leída. Solo el destinatario puede marcarla."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        contact = get_object_or_404(Contact, pk=pk, recipient=request.user)
+        if contact.read_at is None:
+            contact.read_at = timezone.now()
+            contact.save(update_fields=['read_at'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserMatchesAvailableView(ListAPIView):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Card, Variant, Available, Wanted
+from .models import Card, Variant, Available, Wanted, Contact
 from .pricing import get_variant_price
 
 
@@ -118,3 +118,41 @@ class WantedCreateSerializer(serializers.ModelSerializer):
 
 class ContactUserSerializer(serializers.Serializer):
     message = serializers.CharField(required=True, allow_blank=False, max_length=1000)
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    is_read = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contact
+        fields = ['id', 'sender_username', 'message', 'created_at', 'read_at', 'is_read']
+        read_only_fields = fields
+
+    def get_is_read(self, obj):
+        return obj.read_at is not None
+
+
+class ContactDetailSerializer(ContactSerializer):
+    sender_email = serializers.SerializerMethodField()
+    sender_phone = serializers.SerializerMethodField()
+    sender_facebook_url = serializers.SerializerMethodField()
+
+    class Meta(ContactSerializer.Meta):
+        fields = ContactSerializer.Meta.fields + ['sender_email', 'sender_phone', 'sender_facebook_url']
+        read_only_fields = fields
+
+    def _sender_profile(self, obj):
+        return getattr(obj.sender, 'profile', None)
+
+    def get_sender_email(self, obj):
+        profile = self._sender_profile(obj)
+        return (profile.contact_email if profile else None) or obj.sender.email
+
+    def get_sender_phone(self, obj):
+        profile = self._sender_profile(obj)
+        return profile.phone if profile else None
+
+    def get_sender_facebook_url(self, obj):
+        profile = self._sender_profile(obj)
+        return profile.facebook_url if profile else None

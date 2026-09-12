@@ -106,6 +106,26 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface ContactNotification {
+  id: number;
+  sender_username: string;
+  message: string;
+  created_at: string;
+  read_at: string | null;
+  is_read: boolean;
+}
+
+export interface NotificationPollResponse {
+  unread_count: number;
+  unread: ContactNotification[];
+}
+
+export interface ContactDetail extends ContactNotification {
+  sender_email: string | null;
+  sender_phone: string | null;
+  sender_facebook_url: string | null;
+}
+
 export interface CreateAvailableRequest {
   variant: number;
   finish: string;
@@ -148,7 +168,7 @@ export interface UserProfile {
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Inventory", "Wishlist", "Available", "Wanted", "UserProfile"],
+  tagTypes: ["Inventory", "Wishlist", "Available", "Wanted", "UserProfile", "Contact"],
   endpoints: (builder) => ({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
@@ -270,6 +290,32 @@ export const cardsApi = createApi({
         body: { message },
       }),
     }),
+    pollNotifications: builder.query<NotificationPollResponse, void>({
+      query: () => "notifications/poll/",
+      providesTags: ["Contact"],
+    }),
+    getContactHistory: builder.query<PaginatedResponse<ContactNotification>, { page?: number }>({
+      query: ({ page = 1 } = {}) => `contacts/?page=${page}`,
+      providesTags: ["Contact"],
+    }),
+    getContactDetail: builder.query<ContactDetail, number>({
+      query: (id) => `contacts/${id}/`,
+      // El GET marca la notificación como leída en el backend, así que hay
+      // que invalidar "Contact" a mano para que el badge/historial se
+      // actualicen (RTK Query no lo hace solo para queries, solo mutations).
+      onQueryStarted: async (_id, { dispatch, queryFulfilled }) => {
+        await queryFulfilled;
+        dispatch(cardsApi.util.invalidateTags(["Contact"]));
+      },
+    }),
+    markAllContactsRead: builder.mutation<void, void>({
+      query: () => ({ url: "contacts/read/", method: "POST" }),
+      invalidatesTags: ["Contact"],
+    }),
+    markContactRead: builder.mutation<void, number>({
+      query: (id) => ({ url: `contacts/${id}/read/`, method: "POST" }),
+      invalidatesTags: ["Contact"],
+    }),
     importInventory: builder.mutation<ImportInventoryResult, { file: File; format: string; clear: boolean }>({
       query: ({ file, format, clear }) => {
         const formData = new FormData();
@@ -310,4 +356,9 @@ export const {
   useContactUserMutation,
   useGetUserMatchesAvailableQuery,
   useGetUserMatchesWantedQuery,
+  usePollNotificationsQuery,
+  useGetContactHistoryQuery,
+  useGetContactDetailQuery,
+  useMarkAllContactsReadMutation,
+  useMarkContactReadMutation,
 } = cardsApi;
