@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { IconUser } from "@tabler/icons-react";
 import { useGetLatestAvailableQuery, Available } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
@@ -27,8 +28,6 @@ const MIN_ITEMS_FOR_SMOOTH_LOOP = 6;
 function MarqueeCard({ item }: { item: Available }) {
   return (
     <Card
-      component={Link}
-      href={userProfileRoutes.inventory(item.username)}
       padding="sm"
       withBorder
       w={210}
@@ -65,9 +64,19 @@ function MarqueeCard({ item }: { item: Available }) {
             <Badge size="sm" variant="outline" color="gray">×{item.quantity}</Badge>
           )}
         </Group>
-        <Anchor component="span" size="xs" c="dimmed" lineClamp={1}>
-          {item.username}
-        </Anchor>
+        <Group gap={4} wrap="nowrap">
+          <IconUser size={14} style={{ flexShrink: 0, opacity: 0.7 }} />
+          <Anchor
+            component={Link}
+            href={userProfileRoutes.inventory(item.username)}
+            size="xs"
+            fw={600}
+            underline="always"
+            lineClamp={1}
+          >
+            {item.username}
+          </Anchor>
+        </Group>
       </Stack>
     </Card>
   );
