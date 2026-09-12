@@ -12,6 +12,7 @@ import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
 import { cardRoutes } from "@/lib/routes";
+import { priceForFinish } from "@/lib/cardPrice";
 import CardHoverPreview from "@/components/CardHoverPreview";
 
 interface InventoryTableProps {
@@ -65,6 +66,7 @@ export default function InventoryTable({
           <Table.Th>Condición</Table.Th>
           <Table.Th>Idioma</Table.Th>
           <Table.Th>Cantidad</Table.Th>
+          <Table.Th>Precio</Table.Th>
           {showMatchCount && <Table.Th>Buscan</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
@@ -93,6 +95,9 @@ export default function InventoryTable({
             </Table.Td>
             <Table.Td>
               <Text size="sm">{item.quantity}</Text>
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm" fw={500}>{priceForFinish(item.price, item.finish) ?? "—"}</Text>
             </Table.Td>
             {showMatchCount && (
               <Table.Td>

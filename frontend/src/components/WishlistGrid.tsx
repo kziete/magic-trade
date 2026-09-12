@@ -18,6 +18,7 @@ import { IconTrash, IconCards } from "@tabler/icons-react";
 import Link from "next/link";
 import { Wanted } from "@/lib/api";
 import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import { priceForFinish } from "@/lib/cardPrice";
 import CardImagePreview from "@/components/CardImagePreview";
 import { cardRoutes } from "@/lib/routes";
 
@@ -130,6 +131,11 @@ export default function WishlistGrid({
               </Text>
             )}
             <Group gap={4} wrap="wrap">
+              {priceForFinish(item.price, item.finish) && (
+                <Badge size="xs" variant="light" color="green">
+                  {priceForFinish(item.price, item.finish)}
+                </Badge>
+              )}
               {item.finish && (
                 <Tooltip label={item.finish === "foil" ? "Foil" : "Non-foil"}>
                   <Badge size="xs" variant="outline" color={item.finish === "foil" ? "yellow" : "gray"}>

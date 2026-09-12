@@ -60,6 +60,11 @@ export interface CardDetail extends Card {
   viewer_wants_it: boolean;
 }
 
+export interface CardPrice {
+  usd: string | null;
+  usd_foil: string | null;
+}
+
 export interface Available {
   id: number;
   card_id: number;
@@ -73,6 +78,7 @@ export interface Available {
   username: string;
   wanted_count: number;
   quantity: number;
+  price: CardPrice | null;
 }
 
 export interface Variant {
@@ -83,6 +89,7 @@ export interface Variant {
   set_name: string;
   set_short: string;
   finishes: string[];
+  price: CardPrice | null;
 }
 
 export interface AvailableFilters {
@@ -118,6 +125,7 @@ export interface Wanted {
   matches_count: number;
   card_id: number;
   quantity: number;
+  price: CardPrice | null;
 }
 
 export interface CreateWantedRequest {

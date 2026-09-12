@@ -18,6 +18,7 @@ import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available } from "@/lib/api";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import { priceForFinish } from "@/lib/cardPrice";
 import CardImagePreview from "@/components/CardImagePreview";
 import { cardRoutes } from "@/lib/routes";
 
@@ -110,6 +111,11 @@ export default function InventoryGrid({
               {item.set_name}
             </Text>
             <Group gap={4} wrap="wrap">
+              {priceForFinish(item.price, item.finish) && (
+                <Badge size="xs" variant="light" color="green">
+                  {priceForFinish(item.price, item.finish)}
+                </Badge>
+              )}
               {item.finish !== DEFAULT_FINISH && (
                 <Tooltip label="Foil">
                   <Badge size="xs" variant="outline" color="yellow">F</Badge>

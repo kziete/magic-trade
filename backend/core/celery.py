@@ -16,4 +16,8 @@ app.conf.beat_schedule = {
         # (e.g. 5 in local dev) "just works" without crontab-syntax gymnastics.
         'schedule': settings.WISHLIST_NOTIFICATION_INTERVAL_MINUTES * 60,
     },
+    'refresh-active-card-prices': {
+        'task': 'cards.tasks.refresh_active_card_prices',
+        'schedule': settings.CARD_PRICE_REFRESH_INTERVAL_MINUTES * 60,
+    },
 }

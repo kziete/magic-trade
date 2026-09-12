@@ -19,6 +19,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useGetLatestAvailableQuery, Available } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import { priceForFinish } from "@/lib/cardPrice";
 import CardImagePreview from "@/components/CardImagePreview";
 
 const MIN_ITEMS_FOR_SMOOTH_LOOP = 6;
@@ -44,6 +45,11 @@ function MarqueeCard({ item }: { item: Available }) {
           {item.set_name}
         </Text>
         <Group gap={4} wrap="wrap">
+          {priceForFinish(item.price, item.finish) && (
+            <Badge size="sm" variant="light" color="green">
+              {priceForFinish(item.price, item.finish)}
+            </Badge>
+          )}
           {item.finish !== DEFAULT_FINISH && (
             <Tooltip label="Foil">
               <Badge size="sm" variant="outline" color="yellow">F</Badge>

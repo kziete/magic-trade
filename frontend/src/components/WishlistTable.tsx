@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Wanted } from "@/lib/api";
 import CardHoverPreview from "@/components/CardHoverPreview";
 import { cardRoutes } from "@/lib/routes";
+import { priceForFinish } from "@/lib/cardPrice";
 
 interface WishlistTableProps {
   items: Wanted[];
@@ -63,6 +64,7 @@ export default function WishlistTable({
           <Table.Th>Set</Table.Th>
           <Table.Th>Finish</Table.Th>
           <Table.Th>Cantidad</Table.Th>
+          <Table.Th>Precio</Table.Th>
           {showMatchCount && <Table.Th>Coincidencias</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>
@@ -93,6 +95,9 @@ export default function WishlistTable({
             </Table.Td>
             <Table.Td>
               <Text size="sm">{item.quantity}</Text>
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm" fw={500}>{priceForFinish(item.price, item.finish) ?? "—"}</Text>
             </Table.Td>
             {showMatchCount && (
               <Table.Td>

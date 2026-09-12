@@ -17,6 +17,7 @@ import { IconUser } from "@tabler/icons-react";
 import { Available } from "@/lib/api";
 import { userProfileRoutes } from "@/lib/routes";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
+import { priceForFinish } from "@/lib/cardPrice";
 import CardImagePreview from "@/components/CardImagePreview";
 
 interface AvailableListProps {
@@ -68,6 +69,11 @@ export default function AvailableList({
                 {item.set_name}
               </Text>
               <Group gap="xs">
+                {priceForFinish(item.price, item.finish) && (
+                  <Badge variant="light" color="green">
+                    {priceForFinish(item.price, item.finish)}
+                  </Badge>
+                )}
                 {item.finish !== DEFAULT_FINISH && (
                   <Tooltip label="Foil">
                     <Badge variant="outline" color="yellow">F</Badge>

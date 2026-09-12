@@ -13,6 +13,7 @@ import {
   Image,
   Center,
   NumberInput,
+  Text,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
@@ -20,6 +21,7 @@ import {
   useGetVariantsQuery,
   useAddToInventoryMutation,
 } from "@/lib/api";
+import { priceForFinish } from "@/lib/cardPrice";
 
 interface AddInventoryPanelProps {
   opened: boolean;
@@ -187,12 +189,17 @@ export default function AddInventoryPanel({
 
         {selectedVariantData && (
           <Center>
-            <Image
-              src={selectedVariantData.image}
-              alt={selectedVariantData.set_name}
-              radius="md"
-              maw={180}
-            />
+            <Stack gap={4} align="center">
+              <Image
+                src={selectedVariantData.image}
+                alt={selectedVariantData.set_name}
+                radius="md"
+                maw={180}
+              />
+              <Text size="sm" c="dimmed">
+                {priceForFinish(selectedVariantData.price, selectedFinish) ?? "Valor no disponible"}
+              </Text>
+            </Stack>
           </Center>
         )}
 

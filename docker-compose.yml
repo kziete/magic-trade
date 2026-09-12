@@ -29,6 +29,7 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
       - CELERY_BROKER_URL=redis://redis:6379/0
       - WISHLIST_NOTIFICATION_INTERVAL_MINUTES=5
+      - CARD_PRICE_REFRESH_INTERVAL_MINUTES=2
 
   celery-beat:
     build: ./backend
@@ -44,6 +45,7 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
       - CELERY_BROKER_URL=redis://redis:6379/0
       - WISHLIST_NOTIFICATION_INTERVAL_MINUTES=5
+      - CARD_PRICE_REFRESH_INTERVAL_MINUTES=2
 
   redis:
     image: redis:7-alpine

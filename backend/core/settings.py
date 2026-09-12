@@ -273,3 +273,10 @@ WISHLIST_NOTIFICATION_INTERVAL_MINUTES = int(os.environ.get('WISHLIST_NOTIFICATI
 
 # Unhandled-exception email alerts (core.error_reporting.ExceptionAlertMiddleware)
 ERROR_ALERT_EMAIL = os.environ.get('ERROR_ALERT_EMAIL', 'kziete@gmail.com')
+
+# Card price cache (cards.pricing), backed by Redis (same CELERY_BROKER_URL
+# used everywhere else Redis is used in this project).
+CARD_PRICE_CACHE_TTL_SECONDS = int(os.environ.get('CARD_PRICE_CACHE_TTL_SECONDS', '86400'))  # 1 day
+CARD_PRICE_ERROR_CACHE_TTL_SECONDS = int(os.environ.get('CARD_PRICE_ERROR_CACHE_TTL_SECONDS', '60'))
+CARD_PRICE_REFRESH_INTERVAL_MINUTES = int(os.environ.get('CARD_PRICE_REFRESH_INTERVAL_MINUTES', '60'))
+CARD_PRICE_REFRESH_DELAY_SECONDS = float(os.environ.get('CARD_PRICE_REFRESH_DELAY_SECONDS', '0.1'))

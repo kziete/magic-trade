@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 
 from celery import shared_task
@@ -8,7 +9,8 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from zavudev import ZavudevError
 
-from .models import Available, Wanted
+from .models import Available, Variant, Wanted
+from .pricing import fetch_and_cache_variant_price
 from .zavu_client import zavu
 
 
@@ -111,3 +113,20 @@ def send_wishlist_notification_email(self, user_id, matches):
         )
     except ZavudevError as exc:
         raise self.retry(exc=exc)
+
+
+@shared_task
+def refresh_active_card_prices():
+    """Runs every settings.CARD_PRICE_REFRESH_INTERVAL_MINUTES (see
+    core/celery.py beat_schedule). Refreshes the Redis price cache only for
+    Variants actually in use on the marketplace (with an Available or Wanted
+    row) -- iterating the full ~115k-variant Scryfall catalog would violate
+    Scryfall's API guidance to use bulk data for large-scale price needs."""
+    scryfall_ids = (
+        Variant.objects.filter(Q(available__isnull=False) | Q(wanted__isnull=False))
+        .distinct()
+        .values_list('scryfall_id', flat=True)
+    )
+    for scryfall_id in scryfall_ids:
+        fetch_and_cache_variant_price(scryfall_id)
+        time.sleep(settings.CARD_PRICE_REFRESH_DELAY_SECONDS)

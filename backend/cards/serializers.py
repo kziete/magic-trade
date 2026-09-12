@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Card, Variant, Available, Wanted
+from .pricing import get_variant_price
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -44,10 +45,14 @@ class CardDetailSerializer(CardSerializer):
 class VariantSerializer(serializers.ModelSerializer):
     set_name = serializers.CharField(source='card_set.name', read_only=True)
     set_short = serializers.CharField(source='card_set.short', read_only=True)
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Variant
-        fields = ['id', 'scryfall_id', 'collector_number', 'image', 'set_name', 'set_short', 'finishes']
+        fields = ['id', 'scryfall_id', 'collector_number', 'image', 'set_name', 'set_short', 'finishes', 'price']
+
+    def get_price(self, obj):
+        return get_variant_price(obj.scryfall_id)
 
 
 class AvailableSerializer(serializers.ModelSerializer):
@@ -58,10 +63,14 @@ class AvailableSerializer(serializers.ModelSerializer):
     image = serializers.CharField(source='variant.image', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     wanted_count = serializers.IntegerField(read_only=True, default=0)
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Available
-        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username', 'wanted_count', 'quantity']
+        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'condition', 'language', 'username', 'wanted_count', 'quantity', 'price']
+
+    def get_price(self, obj):
+        return get_variant_price(obj.variant.scryfall_id)
 
 
 class AvailableCreateSerializer(serializers.ModelSerializer):
@@ -80,10 +89,11 @@ class WantedSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     matches_count = serializers.IntegerField(read_only=True)
     card_id = serializers.IntegerField(read_only=True)
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Wanted
-        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username', 'matches_count', 'quantity']
+        fields = ['id', 'card_id', 'variant_id', 'card_name', 'set_name', 'image', 'finish', 'username', 'matches_count', 'quantity', 'price']
 
     def get_variant_id(self, obj):
         return obj.variant.id if obj.variant else None
@@ -93,6 +103,9 @@ class WantedSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         return obj.variant.image if obj.variant else obj.fallback_image
+
+    def get_price(self, obj):
+        return get_variant_price(obj.variant.scryfall_id) if obj.variant else None
 
 
 class WantedCreateSerializer(serializers.ModelSerializer):
