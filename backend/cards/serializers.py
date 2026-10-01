@@ -46,11 +46,17 @@ class VariantSerializer(serializers.ModelSerializer):
     set_name = serializers.CharField(source='card_set.name', read_only=True)
     set_short = serializers.CharField(source='card_set.short', read_only=True)
     set_icon_svg_uri = serializers.CharField(source='card_set.icon_svg_uri', read_only=True)
-    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Variant
-        fields = ['id', 'scryfall_id', 'collector_number', 'image', 'set_name', 'set_short', 'set_icon_svg_uri', 'finishes', 'price']
+        fields = ['id', 'scryfall_id', 'collector_number', 'image', 'set_name', 'set_short', 'set_icon_svg_uri', 'finishes']
+
+
+class VariantDetailSerializer(VariantSerializer):
+    price = serializers.SerializerMethodField()
+
+    class Meta(VariantSerializer.Meta):
+        fields = VariantSerializer.Meta.fields + ['price']
 
     def get_price(self, obj):
         return get_variant_price(obj.scryfall_id)

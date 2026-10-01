@@ -8,7 +8,7 @@ from django.test import TestCase
 
 from . import pricing
 from .models import Available, Card, Set, Variant, Wanted
-from .serializers import AvailableSerializer, VariantSerializer, WantedSerializer
+from .serializers import AvailableSerializer, VariantSerializer, VariantDetailSerializer, WantedSerializer
 from .tasks import refresh_active_card_prices
 
 
@@ -147,13 +147,20 @@ class VariantFixtureMixin:
 
 
 class SerializerPriceTests(VariantFixtureMixin, TestCase):
-    def test_variant_serializer_includes_price(self):
+    def test_variant_serializer_excludes_price(self):
         variant = self._make_variant("variant-1")
+        with patch("cards.serializers.get_variant_price") as mock_get:
+            data = VariantSerializer(variant).data
+        self.assertNotIn("price", data)
+        mock_get.assert_not_called()
+
+    def test_variant_detail_serializer_includes_price(self):
+        variant = self._make_variant("variant-1b")
         fixed_price = {"usd": "9.99", "usd_foil": "19.99"}
         with patch("cards.serializers.get_variant_price", return_value=fixed_price) as mock_get:
-            data = VariantSerializer(variant).data
+            data = VariantDetailSerializer(variant).data
         self.assertEqual(data["price"], fixed_price)
-        mock_get.assert_called_once_with("variant-1")
+        mock_get.assert_called_once_with("variant-1b")
 
     def test_available_serializer_includes_price(self):
         variant = self._make_variant("variant-2")

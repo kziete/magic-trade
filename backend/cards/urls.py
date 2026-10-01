@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView
+from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, VariantDetailView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView
 
 urlpatterns = [
     path('cards/', CardListView.as_view()),
     path('cards/<int:pk>/', CardDetailView.as_view()),
     path('cards/<int:card_id>/variants/', VariantListView.as_view()),
+    path('variants/<int:pk>/', VariantDetailView.as_view()),
     path('cards/<int:card_id>/available/', AvailableListView.as_view()),
     path('cards/<int:card_id>/wanted/', CardWantedListView.as_view()),
     path('available/latest/', LatestAvailableListView.as_view()),

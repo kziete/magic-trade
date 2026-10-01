@@ -11,7 +11,6 @@ import {
 import { useGetCardQuery, useGetAvailableQuery, useGetVariantsQuery } from "@/lib/api";
 import CardSearch from "@/components/CardSearch";
 import AvailableList from "@/components/AvailableList";
-import { formatUsdPrice } from "@/lib/cardPrice";
 
 export default function CardSearchDetailPage({
   params,
@@ -42,13 +41,10 @@ export default function CardSearchDetailPage({
   const cardName = card?.name ?? "";
 
   const variantOptions =
-    variants?.map((v) => {
-      const price = formatUsdPrice(v.price?.usd);
-      return {
-        value: v.id.toString(),
-        label: `${v.set_name} (#${v.collector_number})${price ? ` — ${price}` : ""}`,
-      };
-    }) ?? [];
+    variants?.map((v) => ({
+      value: v.id.toString(),
+      label: `${v.set_name} (#${v.collector_number})`,
+    })) ?? [];
 
   return (
     <Container size="sm" py="xl">

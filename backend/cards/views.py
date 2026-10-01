@@ -15,7 +15,7 @@ from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
 from accounts.models import Profile
 from .models import Card, Variant, Available, Wanted, Contact
-from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer
+from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 
@@ -114,6 +114,16 @@ class VariantListView(ListAPIView):
     def get_queryset(self):
         card_id = self.kwargs['card_id']
         return Variant.objects.filter(card_id=card_id)
+
+
+class VariantDetailView(RetrieveAPIView):
+    """Single-variant lookup, used to fetch the price for the variant the
+    user has selected instead of pricing every variant in the list."""
+    serializer_class = VariantDetailSerializer
+    queryset = Variant.objects.all()
+    pagination_class = None
+    authentication_classes = []
+    lookup_field = 'pk'
 
 
 class AvailableListView(ListAPIView):

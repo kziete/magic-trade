@@ -19,6 +19,7 @@ import { useDebouncedValue } from "@mantine/hooks";
 import {
   useSearchCardsQuery,
   useGetVariantsQuery,
+  useGetVariantDetailQuery,
   useAddToInventoryMutation,
 } from "@/lib/api";
 import { priceForFinish } from "@/lib/cardPrice";
@@ -72,6 +73,12 @@ export default function AddInventoryPanel({
   const selectedVariantData = variantsLoading
     ? undefined
     : variants?.find((v) => v.id.toString() === selectedVariant);
+
+  const { data: selectedVariantPrice } = useGetVariantDetailQuery(
+    selectedVariantData ? selectedVariantData.id : 0,
+    { skip: !selectedVariantData }
+  );
+
   const finishOptions =
     selectedVariantData?.finishes.map((f) => ({
       value: f,
@@ -215,7 +222,7 @@ export default function AddInventoryPanel({
                 maw={180}
               />
               <Text size="sm" c="dimmed">
-                {priceForFinish(selectedVariantData.price, selectedFinish) ?? "Valor no disponible"}
+                {priceForFinish(selectedVariantPrice?.price, selectedFinish) ?? "Valor no disponible"}
               </Text>
             </Stack>
           </Center>

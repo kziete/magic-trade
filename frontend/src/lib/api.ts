@@ -90,6 +90,9 @@ export interface Variant {
   set_short: string;
   set_icon_svg_uri: string | null;
   finishes: string[];
+}
+
+export interface VariantDetail extends Variant {
   price: CardPrice | null;
 }
 
@@ -186,6 +189,9 @@ export const cardsApi = createApi({
     }),
     getVariants: builder.query<Variant[], number>({
       query: (cardId) => `cards/${cardId}/variants/`,
+    }),
+    getVariantDetail: builder.query<VariantDetail, number>({
+      query: (variantId) => `variants/${variantId}/`,
     }),
     getAvailable: builder.query<Available[], AvailableFilters>({
       query: ({ cardId, variant, finish, condition }) => {
@@ -340,6 +346,7 @@ export const {
   useGetCardDetailQuery,
   useGetCardWantedByQuery,
   useGetVariantsQuery,
+  useGetVariantDetailQuery,
   useGetAvailableQuery,
   useGetLatestAvailableQuery,
   useGetInventoryQuery,
