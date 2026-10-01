@@ -3,7 +3,9 @@ import { MantineProvider, ColorSchemeScript } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import StoreProvider from "@/lib/StoreProvider";
 import AuthProvider from "@/lib/AuthProvider";
+import MessagesDrawerProvider from "@/lib/MessagesDrawerContext";
 import Header from "@/components/Header";
+import MessagesDrawer from "@/components/MessagesDrawer";
 import { theme } from "@/lib/theme";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
@@ -29,8 +31,11 @@ export default function RootLayout({
           <MantineProvider theme={theme} defaultColorScheme="dark">
             <Notifications position="bottom-right" />
             <AuthProvider>
-              <Header />
-              {children}
+              <MessagesDrawerProvider>
+                <Header />
+                {children}
+                <MessagesDrawer />
+              </MessagesDrawerProvider>
             </AuthProvider>
           </MantineProvider>
         </StoreProvider>

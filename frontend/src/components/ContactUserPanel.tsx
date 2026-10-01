@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Drawer, Stack, Textarea, Button, Alert } from "@mantine/core";
 import { useContactUserMutation } from "@/lib/api";
+import { useMessagesDrawer } from "@/lib/MessagesDrawerContext";
 
 interface ContactUserPanelProps {
   username: string;
@@ -16,7 +16,7 @@ export default function ContactUserPanel({
   opened,
   onClose,
 }: ContactUserPanelProps) {
-  const router = useRouter();
+  const { open: openMessages } = useMessagesDrawer();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -45,7 +45,7 @@ export default function ContactUserPanel({
       const { conversation_id } = await contactUser({ username, message: trimmedMessage }).unwrap();
       resetForm();
       onClose();
-      router.push(`/messages/${conversation_id}`);
+      openMessages(conversation_id);
     } catch {
       setError("Error al enviar el mensaje");
     }

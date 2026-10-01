@@ -41,7 +41,7 @@ export default function MessageThread({ conversationId }: MessageThreadProps) {
   };
 
   return (
-    <Stack gap="sm" h="100%">
+    <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
       <ScrollArea viewportRef={viewportRef} style={{ flex: 1 }} offsetScrollbars>
         <Stack gap="xs" py="sm">
           {isLoading && (
