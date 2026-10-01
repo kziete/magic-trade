@@ -34,6 +34,10 @@ export default function MessagesDrawer() {
       position="right"
       size="sm"
       title={conversationId ? activeConversation?.other_username ?? "Conversación" : "Mensajes"}
+      withOverlay={false}
+      trapFocus={false}
+      lockScroll={false}
+      closeOnClickOutside={false}
       styles={{
         content: { display: "flex", flexDirection: "column" },
         body: { flex: 1, display: "flex", flexDirection: "column", minHeight: 0 },
