@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, ActionIcon, Indicator } from "@mantine/core";
+import { ActionIcon, Indicator } from "@mantine/core";
 import { IconMessageCircle } from "@tabler/icons-react";
 import { useGetConversationsQuery } from "@/lib/api";
 import { useAuth } from "@/lib/AuthProvider";
@@ -23,24 +23,10 @@ export default function MessagesNavLink() {
   }
 
   return (
-    <>
-      {/* Desktop */}
-      <Box visibleFrom="sm">
-        <Indicator label={unreadCount} size={16} disabled={unreadCount === 0} offset={4}>
-          <Button variant="subtle" onClick={() => open()}>
-            Mensajes
-          </Button>
-        </Indicator>
-      </Box>
-
-      {/* Mobile */}
-      <Box hiddenFrom="sm">
-        <Indicator label={unreadCount} size={16} disabled={unreadCount === 0} offset={4}>
-          <ActionIcon variant="subtle" size="lg" onClick={() => open()}>
-            <IconMessageCircle size={20} />
-          </ActionIcon>
-        </Indicator>
-      </Box>
-    </>
+    <Indicator label={unreadCount} size={16} disabled={unreadCount === 0} offset={4}>
+      <ActionIcon variant="subtle" size="lg" onClick={() => open()}>
+        <IconMessageCircle size={20} />
+      </ActionIcon>
+    </Indicator>
   );
 }

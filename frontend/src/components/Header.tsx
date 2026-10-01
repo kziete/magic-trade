@@ -7,7 +7,6 @@ import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart, IconEye } f
 import { useAuth } from "@/lib/AuthProvider";
 import { userProfileRoutes } from "@/lib/routes";
 import CardSearch from "@/components/CardSearch";
-import NotificationBell from "@/components/NotificationBell";
 import MessagesNavLink from "@/components/MessagesNavLink";
 
 export default function Header() {
@@ -71,7 +70,6 @@ export default function Header() {
             {user ? (
               <>
                 <MessagesNavLink />
-                <NotificationBell />
 
                 {/* Desktop */}
                 <Box visibleFrom="sm">
