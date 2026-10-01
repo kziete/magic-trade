@@ -47,9 +47,10 @@ export default function AddWantedPanel({
     { skip: debouncedSearch.length < 2 }
   );
 
-  const { data: variants } = useGetVariantsQuery(selectedCardId!, {
-    skip: !selectedCardId,
-  });
+  const { data: variants, isFetching: variantsLoading } = useGetVariantsQuery(
+    selectedCardId!,
+    { skip: !selectedCardId }
+  );
 
   const [addToWishlist, { isLoading: isAdding }] = useAddToWishlistMutation();
 
@@ -59,15 +60,16 @@ export default function AddWantedPanel({
       label: card.name,
     })) ?? [];
 
-  const variantOptions =
-    variants?.map((v) => ({
-      value: v.id.toString(),
-      label: `${v.set_name} (#${v.collector_number})`,
-    })) ?? [];
+  const variantOptions = variantsLoading
+    ? []
+    : variants?.map((v) => ({
+        value: v.id.toString(),
+        label: `${v.set_name} (#${v.collector_number})`,
+      })) ?? [];
 
-  const selectedVariantData = variants?.find(
-    (v) => v.id.toString() === selectedVariant
-  );
+  const selectedVariantData = variantsLoading
+    ? undefined
+    : variants?.find((v) => v.id.toString() === selectedVariant);
   const finishOptions = selectedVariantData
     ? selectedVariantData.finishes.map((f) => ({
         value: f,
@@ -174,12 +176,13 @@ export default function AddWantedPanel({
 
         <Select
           label="Variante (opcional)"
-          placeholder="Cualquier edición"
+          placeholder={variantsLoading ? "Cargando variantes..." : "Cualquier edición"}
           data={variantOptions}
           value={selectedVariant}
           onChange={handleVariantChange}
-          disabled={!selectedCardId}
+          disabled={!selectedCardId || variantsLoading}
           clearable
+          rightSection={variantsLoading ? <Loader size="xs" /> : undefined}
           leftSection={
             selectedVariantData?.set_icon_svg_uri ? (
               <SetIcon src={selectedVariantData.set_icon_svg_uri} />
