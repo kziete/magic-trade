@@ -1,5 +1,6 @@
 import io
 from django.contrib.auth.models import User
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
 from rest_framework.views import APIView
@@ -14,8 +15,8 @@ from django.db.models import OuterRef, Subquery, Sum, Count, F, Q, Value, Intege
 from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
 from accounts.models import Profile
-from .models import Card, Variant, Available, Wanted, Contact
-from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer
+from .models import Card, Variant, Available, Wanted, Contact, Conversation, Message
+from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 
@@ -315,17 +316,24 @@ class ContactUserView(APIView):
 
         target_profile = getattr(target_user, 'profile', None)
         to_email = (target_profile.contact_email if target_profile else None) or target_user.email
-        if not to_email:
-            return Response(
-                {'error': 'Este usuario no tiene un email de contacto configurado'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         Contact.objects.create(
             sender=request.user,
             recipient=target_user,
             message=sender_message,
         )
+
+        conversation, _ = Conversation.objects.get_or_create_between(request.user, target_user)
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            body=sender_message,
+        )
+        conversation.last_message_at = message.created_at
+        conversation.save(update_fields=['last_message_at'])
+
+        if not to_email:
+            return Response({'conversation_id': conversation.id}, status=status.HTTP_201_CREATED)
 
         sender_profile = getattr(request.user, 'profile', None)
         sender_email = (sender_profile.contact_email if sender_profile else None) or request.user.email
@@ -372,7 +380,7 @@ class ContactUserView(APIView):
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response({'conversation_id': conversation.id}, status=status.HTTP_201_CREATED)
 
 
 class NotificationPollView(APIView):
@@ -441,6 +449,74 @@ class ContactDetailView(APIView):
             contact.read_at = timezone.now()
             contact.save(update_fields=['read_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ConversationListView(ListAPIView):
+    """GET /api/conversations/ -- inbox del usuario autenticado, ordenado por
+    actividad reciente. Pensado para pollear desde el frontend."""
+    serializer_class = ConversationSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        viewer = self.request.user
+        return (
+            Conversation.objects.filter(Q(user_a=viewer) | Q(user_b=viewer))
+            .select_related('user_a', 'user_b')
+            .prefetch_related('messages__sender')
+        )
+
+
+class ConversationMessagesView(APIView):
+    """GET /api/conversations/<pk>/messages/ -- historial (o solo lo nuevo via
+    ?after_id=) de una conversación; marca como leídos los mensajes del otro
+    participante, igual que ContactRetrieveView con las notificaciones.
+    POST -- envía un mensaje nuevo en una conversación existente."""
+    permission_classes = [IsAuthenticated]
+
+    def _get_conversation(self, request, pk):
+        conversation = get_object_or_404(
+            Conversation.objects.select_related('user_a', 'user_b'), pk=pk
+        )
+        if request.user not in (conversation.user_a, conversation.user_b):
+            raise Http404
+        return conversation
+
+    def get(self, request, pk):
+        conversation = self._get_conversation(request, pk)
+        messages = conversation.messages.select_related('sender').order_by('created_at')
+
+        after_id = request.query_params.get('after_id')
+        if after_id:
+            messages = messages.filter(id__gt=after_id)
+        messages = list(messages)
+
+        unread_ids = [
+            m.id for m in messages if m.read_at is None and m.sender_id != request.user.id
+        ]
+        if unread_ids:
+            now = timezone.now()
+            Message.objects.filter(id__in=unread_ids).update(read_at=now)
+            for m in messages:
+                if m.id in unread_ids:
+                    m.read_at = now
+
+        return Response(MessageSerializer(messages, many=True).data)
+
+    def post(self, request, pk):
+        conversation = self._get_conversation(request, pk)
+        serializer = MessageCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            body=serializer.validated_data['body'].strip(),
+        )
+        conversation.last_message_at = message.created_at
+        conversation.save(update_fields=['last_message_at'])
+
+        return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
 
 
 class UserMatchesAvailableView(ListAPIView):

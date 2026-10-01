@@ -5,10 +5,11 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from . import pricing
-from .models import Available, Card, Set, Variant, Wanted
-from .serializers import AvailableSerializer, VariantSerializer, VariantDetailSerializer, WantedSerializer
+from .models import Available, Card, Conversation, Message, Set, Variant, Wanted
+from .serializers import AvailableSerializer, ConversationSerializer, MessageSerializer, VariantSerializer, VariantDetailSerializer, WantedSerializer
 from .tasks import refresh_active_card_prices
 
 
@@ -214,3 +215,143 @@ class RefreshActiveCardPricesTaskTests(VariantFixtureMixin, TestCase):
         self.assertEqual(called_ids, {"has-available", "has-wanted"})
         self.assertEqual(mock_fetch.call_count, 2)
         self.assertEqual(mock_sleep.call_count, 2)
+
+
+class ConversationModelTests(TestCase):
+    def test_get_or_create_between_is_order_independent(self):
+        alice = User.objects.create(username="alice")
+        bob = User.objects.create(username="bob")
+
+        conversation1, created1 = Conversation.objects.get_or_create_between(alice, bob)
+        conversation2, created2 = Conversation.objects.get_or_create_between(bob, alice)
+
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(conversation1.id, conversation2.id)
+
+    def test_other_user(self):
+        alice = User.objects.create(username="alice2")
+        bob = User.objects.create(username="bob2")
+        conversation, _ = Conversation.objects.get_or_create_between(alice, bob)
+
+        self.assertEqual(conversation.other_user(alice), bob)
+        self.assertEqual(conversation.other_user(bob), alice)
+
+
+class ConversationSerializerTests(TestCase):
+    def setUp(self):
+        self.alice = User.objects.create(username="alice3")
+        self.bob = User.objects.create(username="bob3")
+        self.conversation, _ = Conversation.objects.get_or_create_between(self.alice, self.bob)
+
+    def _request_for(self, user):
+        request = MagicMock()
+        request.user = user
+        return request
+
+    def test_message_serializer_fields(self):
+        message = Message.objects.create(conversation=self.conversation, sender=self.alice, body="Hola")
+        data = MessageSerializer(message).data
+        self.assertEqual(data["sender_username"], "alice3")
+        self.assertEqual(data["body"], "Hola")
+        self.assertIsNone(data["read_at"])
+
+    def test_conversation_serializer_reports_other_user_last_message_and_unread(self):
+        Message.objects.create(conversation=self.conversation, sender=self.alice, body="Primero")
+        last = Message.objects.create(conversation=self.conversation, sender=self.alice, body="Segundo")
+
+        conversation = (
+            Conversation.objects.filter(pk=self.conversation.pk)
+            .prefetch_related("messages__sender")
+            .get()
+        )
+
+        data_for_bob = ConversationSerializer(conversation, context={"request": self._request_for(self.bob)}).data
+        self.assertEqual(data_for_bob["other_username"], "alice3")
+        self.assertEqual(data_for_bob["last_message"]["id"], last.id)
+        self.assertEqual(data_for_bob["unread_count"], 2)
+
+        data_for_alice = ConversationSerializer(conversation, context={"request": self._request_for(self.alice)}).data
+        self.assertEqual(data_for_alice["other_username"], "bob3")
+        self.assertEqual(data_for_alice["unread_count"], 0)
+
+
+class ConversationViewTests(TestCase):
+    def setUp(self):
+        self.alice = User.objects.create(username="alice4")
+        self.bob = User.objects.create(username="bob4")
+        self.client = APIClient()
+
+    def test_post_message_creates_and_touches_conversation(self):
+        conversation, _ = Conversation.objects.get_or_create_between(self.alice, self.bob)
+        original_last_message_at = conversation.last_message_at
+
+        self.client.force_authenticate(self.alice)
+        response = self.client.post(f"/api/conversations/{conversation.id}/messages/", {"body": "Hola Bob"})
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Message.objects.filter(conversation=conversation).count(), 1)
+        conversation.refresh_from_db()
+        self.assertGreaterEqual(conversation.last_message_at, original_last_message_at)
+
+    def test_get_messages_marks_other_participants_messages_as_read(self):
+        conversation, _ = Conversation.objects.get_or_create_between(self.alice, self.bob)
+        Message.objects.create(conversation=conversation, sender=self.alice, body="Hola")
+
+        self.client.force_authenticate(self.bob)
+        response = self.client.get(f"/api/conversations/{conversation.id}/messages/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertIsNotNone(response.data[0]["read_at"])
+        self.assertIsNotNone(Message.objects.get(conversation=conversation).read_at)
+
+    def test_non_participant_cannot_access_conversation(self):
+        conversation, _ = Conversation.objects.get_or_create_between(self.alice, self.bob)
+        intruder = User.objects.create(username="intruder")
+
+        self.client.force_authenticate(intruder)
+        response = self.client.get(f"/api/conversations/{conversation.id}/messages/")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_conversation_list_only_includes_viewers_conversations(self):
+        conversation, _ = Conversation.objects.get_or_create_between(self.alice, self.bob)
+        Message.objects.create(conversation=conversation, sender=self.alice, body="Hola")
+        other_user = User.objects.create(username="other4")
+        Conversation.objects.get_or_create_between(self.bob, other_user)
+
+        self.client.force_authenticate(self.alice)
+        response = self.client.get("/api/conversations/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["other_username"], "bob4")
+
+
+class ContactUserViewTests(TestCase):
+    def setUp(self):
+        self.alice = User.objects.create(username="alice5", email="alice5@example.com")
+        self.bob = User.objects.create(username="bob5")  # no email configured
+        self.client = APIClient()
+        self.client.force_authenticate(self.alice)
+
+    def test_contact_without_recipient_email_still_creates_conversation(self):
+        response = self.client.post("/api/users/bob5/contact/", {"message": "Busco esta carta"})
+
+        self.assertEqual(response.status_code, 201)
+        conversation = Conversation.objects.get(pk=response.data["conversation_id"])
+        self.assertEqual(conversation.other_user(self.alice), self.bob)
+        self.assertEqual(Message.objects.get(conversation=conversation).body, "Busco esta carta")
+
+    def test_contact_with_recipient_email_sends_email_and_creates_conversation(self):
+        self.bob.email = "bob5@example.com"
+        self.bob.save()
+
+        with patch("cards.views.send_contact_email.delay") as mock_delay:
+            response = self.client.post("/api/users/bob5/contact/", {"message": "Busco esta carta"})
+
+        self.assertEqual(response.status_code, 201)
+        mock_delay.assert_called_once()
+        conversation = Conversation.objects.get(pk=response.data["conversation_id"])
+        self.assertEqual(Message.objects.filter(conversation=conversation).count(), 1)

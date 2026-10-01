@@ -94,3 +94,49 @@ class Contact(models.Model):
 
     def __str__(self) -> str:
         return f"{self.sender.username} -> {self.recipient.username}"
+
+
+class ConversationManager(models.Manager):
+    def get_or_create_between(self, user1: User, user2: User):
+        # Conversations are unordered pairs, but the unique constraint needs a
+        # canonical order, so the lower pk always goes in user_a.
+        user_a, user_b = sorted([user1, user2], key=lambda u: u.pk)
+        return self.get_or_create(user_a=user_a, user_b=user_b)
+
+
+class Conversation(models.Model):
+    user_a = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations_as_a')
+    user_b = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations_as_b')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_message_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ConversationManager()
+
+    class Meta:
+        ordering = ['-last_message_at']
+        constraints = [
+            models.UniqueConstraint(fields=['user_a', 'user_b'], name='unique_conversation_pair'),
+        ]
+
+    def other_user(self, viewer: User) -> User:
+        return self.user_b if self.user_a_id == viewer.id else self.user_a
+
+    def __str__(self) -> str:
+        return f"{self.user_a.username} <-> {self.user_b.username}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    body = models.CharField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sender.username}: {self.body[:30]}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Card, Variant, Available, Wanted, Contact
+from .models import Card, Variant, Available, Wanted, Contact, Conversation, Message
 from .pricing import get_variant_price
 
 
@@ -163,3 +163,44 @@ class ContactDetailSerializer(ContactSerializer):
     def get_sender_facebook_url(self, obj):
         profile = self._sender_profile(obj)
         return profile.facebook_url if profile else None
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ['id', 'conversation_id', 'sender_username', 'body', 'created_at', 'read_at']
+        read_only_fields = fields
+
+
+class MessageCreateSerializer(serializers.Serializer):
+    body = serializers.CharField(required=True, allow_blank=False, max_length=2000)
+
+
+class ConversationSerializer(serializers.ModelSerializer):
+    other_username = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'other_username', 'last_message', 'unread_count', 'last_message_at']
+        read_only_fields = fields
+
+    def _messages(self, obj):
+        # Relies on the view prefetching `messages` so this doesn't issue a
+        # query per conversation in the list endpoint.
+        return list(obj.messages.all())
+
+    def get_other_username(self, obj):
+        viewer = self.context['request'].user
+        return obj.other_user(viewer).username
+
+    def get_last_message(self, obj):
+        messages = self._messages(obj)
+        return MessageSerializer(messages[-1]).data if messages else None
+
+    def get_unread_count(self, obj):
+        viewer = self.context['request'].user
+        return sum(1 for m in self._messages(obj) if m.read_at is None and m.sender_id != viewer.id)

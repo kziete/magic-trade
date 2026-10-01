@@ -169,10 +169,31 @@ export interface UserProfile {
   username: string;
 }
 
+export interface Message {
+  id: number;
+  conversation_id: number;
+  sender_username: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+}
+
+export interface Conversation {
+  id: number;
+  other_username: string;
+  last_message: Message | null;
+  unread_count: number;
+  last_message_at: string;
+}
+
+export interface ContactUserResponse {
+  conversation_id: number;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Inventory", "Wishlist", "Available", "Wanted", "UserProfile", "Contact"],
+  tagTypes: ["Inventory", "Wishlist", "Available", "Wanted", "UserProfile", "Contact", "Conversation"],
   endpoints: (builder) => ({
     searchCards: builder.query<Card[], string>({
       query: (searchQuery) => `cards/?query=${encodeURIComponent(searchQuery)}`,
@@ -290,12 +311,13 @@ export const cardsApi = createApi({
       query: (username) => `users/${username}/matches/wanted/`,
       providesTags: ["Wanted"],
     }),
-    contactUser: builder.mutation<void, { username: string; message?: string }>({
+    contactUser: builder.mutation<ContactUserResponse, { username: string; message?: string }>({
       query: ({ username, message }) => ({
         url: `users/${username}/contact/`,
         method: "POST",
         body: { message },
       }),
+      invalidatesTags: ["Conversation"],
     }),
     pollNotifications: builder.query<NotificationPollResponse, void>({
       query: () => "notifications/poll/",
@@ -322,6 +344,28 @@ export const cardsApi = createApi({
     markContactRead: builder.mutation<void, number>({
       query: (id) => ({ url: `contacts/${id}/read/`, method: "POST" }),
       invalidatesTags: ["Contact"],
+    }),
+    getConversations: builder.query<Conversation[], void>({
+      query: () => "conversations/",
+      providesTags: (result) =>
+        result
+          ? [...result.map((c) => ({ type: "Conversation" as const, id: c.id })), { type: "Conversation" as const, id: "LIST" }]
+          : [{ type: "Conversation" as const, id: "LIST" }],
+    }),
+    getConversationMessages: builder.query<Message[], number>({
+      query: (conversationId) => `conversations/${conversationId}/messages/`,
+      providesTags: (_result, _error, conversationId) => [{ type: "Conversation", id: conversationId }],
+    }),
+    sendMessage: builder.mutation<Message, { conversationId: number; body: string }>({
+      query: ({ conversationId, body }) => ({
+        url: `conversations/${conversationId}/messages/`,
+        method: "POST",
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, { conversationId }) => [
+        { type: "Conversation", id: conversationId },
+        { type: "Conversation", id: "LIST" },
+      ],
     }),
     importInventory: builder.mutation<ImportInventoryResult, { file: File; format: string; clear: boolean }>({
       query: ({ file, format, clear }) => {
@@ -369,4 +413,7 @@ export const {
   useGetContactDetailQuery,
   useMarkAllContactsReadMutation,
   useMarkContactReadMutation,
+  useGetConversationsQuery,
+  useGetConversationMessagesQuery,
+  useSendMessageMutation,
 } = cardsApi;

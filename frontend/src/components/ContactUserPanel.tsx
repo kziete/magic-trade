@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Drawer, Stack, Textarea, Button, Alert } from "@mantine/core";
 import { useContactUserMutation } from "@/lib/api";
 
@@ -15,16 +16,15 @@ export default function ContactUserPanel({
   opened,
   onClose,
 }: ContactUserPanelProps) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   const [contactUser, { isLoading: isContacting }] = useContactUserMutation();
 
   const resetForm = () => {
     setMessage("");
     setError("");
-    setSuccess(false);
   };
 
   const handleClose = () => {
@@ -34,7 +34,6 @@ export default function ContactUserPanel({
 
   const handleSubmit = async () => {
     setError("");
-    setSuccess(false);
 
     const trimmedMessage = message.trim();
     if (!trimmedMessage) {
@@ -43,9 +42,10 @@ export default function ContactUserPanel({
     }
 
     try {
-      await contactUser({ username, message: trimmedMessage }).unwrap();
-      setSuccess(true);
-      setMessage("");
+      const { conversation_id } = await contactUser({ username, message: trimmedMessage }).unwrap();
+      resetForm();
+      onClose();
+      router.push(`/messages/${conversation_id}`);
     } catch {
       setError("Error al enviar el mensaje");
     }
@@ -61,7 +61,6 @@ export default function ContactUserPanel({
     >
       <Stack gap="md">
         {error && <Alert color="red">{error}</Alert>}
-        {success && <Alert color="green">Mensaje enviado exitosamente</Alert>}
 
         <Textarea
           label="Mensaje"

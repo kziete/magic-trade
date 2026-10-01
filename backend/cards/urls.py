@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, VariantDetailView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView
+from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, VariantDetailView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView, ConversationListView, ConversationMessagesView
 
 urlpatterns = [
     path('cards/', CardListView.as_view()),
@@ -27,4 +27,6 @@ urlpatterns = [
     path('contacts/read/', ContactMarkReadView.as_view()),
     path('contacts/<int:pk>/read/', ContactDetailView.as_view()),
     path('contacts/<int:pk>/', ContactRetrieveView.as_view()),
+    path('conversations/', ConversationListView.as_view()),
+    path('conversations/<int:pk>/messages/', ConversationMessagesView.as_view()),
 ]
