@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 import requests
 from django.core.management.base import BaseCommand, CommandError
 from cards.models import Set, Card, Variant, Finish
+from cards.pricing import _HEADERS as SCRYFALL_HEADERS
 
 
 class Command(BaseCommand):
@@ -14,6 +15,25 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('file', type=str, help='Ruta al archivo JSONL o URL a un archivo .json.gz')
+
+    def _fetch_set_icons(self):
+        icons = {}
+        url = 'https://api.scryfall.com/sets'
+        try:
+            while url:
+                response = requests.get(url, headers=SCRYFALL_HEADERS)
+                response.raise_for_status()
+                payload = response.json()
+                for set_data in payload.get('data', []):
+                    icon = set_data.get('icon_svg_uri')
+                    if icon:
+                        icons[set_data['code']] = icon
+                url = payload.get('next_page') if payload.get('has_more') else None
+        except requests.RequestException as e:
+            self.stdout.write(self.style.WARNING(
+                f'No se pudieron obtener los íconos de las ediciones desde Scryfall: {e}'
+            ))
+        return icons
 
     @contextmanager
     def _open_source(self, file_path):
@@ -42,6 +62,9 @@ class Command(BaseCommand):
         variants_to_upsert = []
         skipped = 0
         batch_size = 1000
+
+        self.stdout.write('Obteniendo íconos de ediciones desde Scryfall...')
+        set_icons = self._fetch_set_icons()
 
         self.stdout.write(f'Leyendo {file_path}...')
 
@@ -76,10 +99,14 @@ class Command(BaseCommand):
 
                     set_code = data['set']
                     if set_code not in sets_cache:
-                        card_set, _ = Set.objects.get_or_create(
+                        icon_svg_uri = set_icons.get(set_code, '')
+                        card_set, created = Set.objects.get_or_create(
                             short=set_code,
-                            defaults={'name': data['set_name']}
+                            defaults={'name': data['set_name'], 'icon_svg_uri': icon_svg_uri}
                         )
+                        if not created and icon_svg_uri and card_set.icon_svg_uri != icon_svg_uri:
+                            card_set.icon_svg_uri = icon_svg_uri
+                            card_set.save(update_fields=['icon_svg_uri'])
                         sets_cache[set_code] = card_set
 
                     if oracle_id not in cards_cache:

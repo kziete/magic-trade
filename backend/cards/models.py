@@ -26,6 +26,7 @@ class Language(models.TextChoices):
 class Set(models.Model):
     short = models.CharField()
     name = models.CharField()
+    icon_svg_uri = models.CharField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.short} - {self.name}"
