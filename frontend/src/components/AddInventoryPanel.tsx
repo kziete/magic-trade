@@ -22,6 +22,7 @@ import {
   useAddToInventoryMutation,
 } from "@/lib/api";
 import { priceForFinish } from "@/lib/cardPrice";
+import SetIcon from "@/components/SetIcon";
 
 interface AddInventoryPanelProps {
   opened: boolean;
@@ -185,6 +186,20 @@ export default function AddInventoryPanel({
           value={selectedVariant}
           onChange={handleVariantChange}
           disabled={!selectedCardId}
+          leftSection={
+            selectedVariantData?.set_icon_svg_uri ? (
+              <SetIcon src={selectedVariantData.set_icon_svg_uri} />
+            ) : undefined
+          }
+          renderOption={({ option }) => {
+            const variant = variants?.find((v) => v.id.toString() === option.value);
+            return (
+              <Group gap="xs" wrap="nowrap">
+                <SetIcon src={variant?.set_icon_svg_uri} />
+                <Text size="sm">{option.label}</Text>
+              </Group>
+            );
+          }}
         />
 
         {selectedVariantData && (

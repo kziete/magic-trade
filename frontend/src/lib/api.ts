@@ -88,6 +88,7 @@ export interface Variant {
   image: string;
   set_name: string;
   set_short: string;
+  set_icon_svg_uri: string | null;
   finishes: string[];
   price: CardPrice | null;
 }

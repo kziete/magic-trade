@@ -22,6 +22,7 @@ import {
   useAddToWishlistMutation,
 } from "@/lib/api";
 import { priceForFinish } from "@/lib/cardPrice";
+import SetIcon from "@/components/SetIcon";
 
 interface AddWantedPanelProps {
   opened: boolean;
@@ -179,6 +180,20 @@ export default function AddWantedPanel({
           onChange={handleVariantChange}
           disabled={!selectedCardId}
           clearable
+          leftSection={
+            selectedVariantData?.set_icon_svg_uri ? (
+              <SetIcon src={selectedVariantData.set_icon_svg_uri} />
+            ) : undefined
+          }
+          renderOption={({ option }) => {
+            const variant = variants?.find((v) => v.id.toString() === option.value);
+            return (
+              <Group gap="xs" wrap="nowrap">
+                <SetIcon src={variant?.set_icon_svg_uri} />
+                <Text size="sm">{option.label}</Text>
+              </Group>
+            );
+          }}
         />
 
         {selectedVariantData && (
