@@ -30,7 +30,7 @@ export default function Header() {
         <Group h={60} justify="space-between" wrap="nowrap">
           <Link href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
             <Text fw={650} size="lg" c="dark.0" style={{ letterSpacing: "-0.01em" }}>
-              Magic Trade
+              Cardtones
             </Text>
           </Link>
 

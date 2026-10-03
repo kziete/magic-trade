@@ -12,8 +12,22 @@ import "@mantine/notifications/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Magic Trade",
+  metadataBase: new URL("https://cardtones.com"),
+  title: "Cardtones",
   description: "Trade Magic cards",
+  openGraph: {
+    title: "Cardtones",
+    description: "Trade Magic cards",
+    url: "https://cardtones.com",
+    siteName: "Cardtones",
+    locale: "es_CL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cardtones",
+    description: "Trade Magic cards",
+  },
 };
 
 export default function RootLayout({
