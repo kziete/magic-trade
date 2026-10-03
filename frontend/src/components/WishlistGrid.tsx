@@ -16,11 +16,12 @@ import {
 } from "@mantine/core";
 import { IconTrash, IconCards } from "@tabler/icons-react";
 import Link from "next/link";
-import { Wanted } from "@/lib/api";
+import { Wanted, SortField, SortOrder } from "@/lib/api";
 import { DEFAULT_QUANTITY } from "@/lib/cardDefaults";
 import { priceForFinish } from "@/lib/cardPrice";
 import CardImagePreview from "@/components/CardImagePreview";
 import { cardRoutes } from "@/lib/routes";
+import SortBar from "@/components/SortBar";
 
 interface WishlistGridProps {
   items: Wanted[];
@@ -30,6 +31,9 @@ interface WishlistGridProps {
   onDelete?: (id: number, cardName: string) => void;
   cols?: ComponentProps<typeof SimpleGrid>["cols"];
   showMatchCount?: boolean;
+  sort?: SortField;
+  order?: SortOrder;
+  onSortChange?: (field: SortField) => void;
 }
 
 export default function WishlistGrid({
@@ -40,130 +44,124 @@ export default function WishlistGrid({
   onDelete,
   cols,
   showMatchCount = false,
+  sort,
+  order = "asc",
+  onSortChange,
 }: WishlistGridProps) {
-  if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader size="lg" />
-      </Center>
-    );
-  }
-
-  if (error) {
-    return (
-      <Text c="red" ta="center">
-        Error al cargar wishlist
-      </Text>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <Text ta="center" c="dimmed">
-        {emptyMessage}
-      </Text>
-    );
-  }
-
   return (
-    <SimpleGrid
-      cols={cols ?? { base: 2, xs: 3, sm: 4, md: 5 }}
-      spacing="md"
-    >
-      {items.map((item) => (
-        <Card
-          key={item.id}
-          padding="xs"
-          withBorder
-          style={{ position: "relative" }}
-        >
-          {onDelete && (
-            <ActionIcon
-              variant="filled"
-              color="red"
-              size="sm"
-              radius="xl"
-              style={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                zIndex: 10,
-              }}
-              onClick={() => onDelete(item.id, item.card_name)}
+    <Stack gap="sm">
+      {onSortChange && <SortBar sort={sort} order={order} onSortChange={onSortChange} />}
+
+      {isLoading ? (
+        <Center py="xl">
+          <Loader size="lg" />
+        </Center>
+      ) : error ? (
+        <Text c="red" ta="center">
+          Error al cargar wishlist
+        </Text>
+      ) : items.length === 0 ? (
+        <Text ta="center" c="dimmed">
+          {emptyMessage}
+        </Text>
+      ) : (
+        <SimpleGrid cols={cols ?? { base: 2, xs: 3, sm: 4, md: 5 }} spacing="md">
+          {items.map((item) => (
+            <Card
+              key={item.id}
+              padding="xs"
+              withBorder
+              style={{ position: "relative" }}
             >
-              <IconTrash size={14} />
-            </ActionIcon>
-          )}
-
-          <Card.Section pt="md" px="xs">
-            {item.image ? (
-              <CardImagePreview
-                src={item.image}
-                alt={item.card_name}
-                radius="lg"
-              />
-            ) : (
-              <Box
-                style={{
-                  aspectRatio: "5 / 7",
-                  border: "1px dashed var(--mantine-color-dark-4)",
-                  borderRadius: "var(--mantine-radius-lg)",
-                }}
-              >
-                <Center h="100%">
-                  <IconCards size={48} color="var(--mantine-color-dimmed)" />
-                </Center>
-              </Box>
-            )}
-          </Card.Section>
-
-          <Stack gap={4} mt="xs">
-            <Text size="xs" fw={600} lineClamp={1}>
-              {item.card_name}
-            </Text>
-            {item.set_name ? (
-              <Text size="xs" c="dimmed" lineClamp={1}>
-                {item.set_name}
-              </Text>
-            ) : (
-              <Text size="xs" c="dimmed" fs="italic" lineClamp={1}>
-                Cualquier edición
-              </Text>
-            )}
-            <Group gap={4} wrap="wrap">
-              {priceForFinish(item.price, item.finish) && (
-                <Badge size="xs" variant="light" color="green">
-                  {priceForFinish(item.price, item.finish)}
-                </Badge>
-              )}
-              {item.finish && (
-                <Tooltip label={item.finish === "foil" ? "Foil" : "Non-foil"}>
-                  <Badge size="xs" variant="outline" color={item.finish === "foil" ? "yellow" : "gray"}>
-                    {item.finish === "foil" ? "F" : "NF"}
-                  </Badge>
-                </Tooltip>
-              )}
-              {item.quantity > DEFAULT_QUANTITY && (
-                <Badge size="xs" variant="outline" color="gray">
-                  ×{item.quantity}
-                </Badge>
-              )}
-              {showMatchCount && item.matches_count > 0 && (
-                <Badge
-                  component={Link}
-                  href={cardRoutes.matches(item.card_id)}
-                  size="xs"
+              {onDelete && (
+                <ActionIcon
                   variant="filled"
-                  color="teal"
-                  style={{ cursor: "pointer", textDecoration: "none" }}
+                  color="red"
+                  size="sm"
+                  radius="xl"
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    zIndex: 10,
+                  }}
+                  onClick={() => onDelete(item.id, item.card_name)}
                 >
-                  {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
-                </Badge>
+                  <IconTrash size={14} />
+                </ActionIcon>
               )}
-            </Group>
-          </Stack>
-        </Card>
-      ))}
-    </SimpleGrid>
+
+              <Card.Section pt="md" px="xs">
+                {item.image ? (
+                  <CardImagePreview
+                    src={item.image}
+                    alt={item.card_name}
+                    radius="lg"
+                  />
+                ) : (
+                  <Box
+                    style={{
+                      aspectRatio: "5 / 7",
+                      border: "1px dashed var(--mantine-color-dark-4)",
+                      borderRadius: "var(--mantine-radius-lg)",
+                    }}
+                  >
+                    <Center h="100%">
+                      <IconCards size={48} color="var(--mantine-color-dimmed)" />
+                    </Center>
+                  </Box>
+                )}
+              </Card.Section>
+
+              <Stack gap={4} mt="xs">
+                <Text size="xs" fw={600} lineClamp={1}>
+                  {item.card_name}
+                </Text>
+                {item.set_name ? (
+                  <Text size="xs" c="dimmed" lineClamp={1}>
+                    {item.set_name}
+                  </Text>
+                ) : (
+                  <Text size="xs" c="dimmed" fs="italic" lineClamp={1}>
+                    Cualquier edición
+                  </Text>
+                )}
+                <Group gap={4} wrap="wrap">
+                  {priceForFinish(item.price, item.finish) && (
+                    <Badge size="xs" variant="light" color="green">
+                      {priceForFinish(item.price, item.finish)}
+                    </Badge>
+                  )}
+                  {item.finish && (
+                    <Tooltip label={item.finish === "foil" ? "Foil" : "Non-foil"}>
+                      <Badge size="xs" variant="outline" color={item.finish === "foil" ? "yellow" : "gray"}>
+                        {item.finish === "foil" ? "F" : "NF"}
+                      </Badge>
+                    </Tooltip>
+                  )}
+                  {item.quantity > DEFAULT_QUANTITY && (
+                    <Badge size="xs" variant="outline" color="gray">
+                      ×{item.quantity}
+                    </Badge>
+                  )}
+                  {showMatchCount && item.matches_count > 0 && (
+                    <Badge
+                      component={Link}
+                      href={cardRoutes.matches(item.card_id)}
+                      size="xs"
+                      variant="filled"
+                      color="teal"
+                      style={{ cursor: "pointer", textDecoration: "none" }}
+                    >
+                      {item.matches_count} coincidencia{item.matches_count === 1 ? "" : "s"}
+                    </Badge>
+                  )}
+                </Group>
+              </Stack>
+            </Card>
+          ))}
+        </SimpleGrid>
+      )}
+    </Stack>
   );
 }

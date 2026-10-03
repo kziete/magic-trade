@@ -81,3 +81,18 @@ def get_variant_price(scryfall_id: str) -> dict | None:
         return data
 
     return fetch_and_cache_variant_price(scryfall_id)
+
+
+def price_value_for_sort(price: dict | None, finish: str | None) -> float | None:
+    """Mirrors frontend/src/lib/cardPrice.ts::priceForFinish so sorting by
+    price matches what's shown on screen: foil uses usd_foil, anything else
+    uses usd. Returns None when there's nothing to sort by."""
+    if not price:
+        return None
+    raw = price.get("usd_foil") if finish == "foil" else price.get("usd")
+    if raw is None:
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return None

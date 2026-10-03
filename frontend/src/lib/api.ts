@@ -190,6 +190,14 @@ export interface ContactUserResponse {
   conversation_id: number;
 }
 
+export type SortField = "card_name" | "set_name" | "price";
+export type SortOrder = "asc" | "desc";
+
+export interface SortParams {
+  sort?: SortField;
+  order?: SortOrder;
+}
+
 export const cardsApi = createApi({
   reducerPath: "cardsApi",
   baseQuery: baseQueryWithReauth,
@@ -229,10 +237,12 @@ export const cardsApi = createApi({
       query: () => "available/latest/",
       providesTags: ["Available"],
     }),
-    getInventory: builder.query<PaginatedResponse<Available>, { page?: number; query?: string }>({
-      query: ({ page = 1, query } = {}) => {
+    getInventory: builder.query<PaginatedResponse<Available>, { page?: number; query?: string } & SortParams>({
+      query: ({ page = 1, query, sort, order } = {}) => {
         const params = new URLSearchParams({ page: page.toString() });
         if (query) params.append("query", query);
+        if (sort) params.append("sort", sort);
+        if (order) params.append("order", order);
         return `inventory/?${params.toString()}`;
       },
       providesTags: ["Inventory"],
@@ -256,18 +266,22 @@ export const cardsApi = createApi({
       query: (availableId) => `inventory/${availableId}/wanted/`,
       providesTags: ["Wanted"],
     }),
-    getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number; query?: string }>({
-      query: ({ username, page, query }) => {
+    getUserInventory: builder.query<PaginatedResponse<Available>, { username: string; page: number; query?: string } & SortParams>({
+      query: ({ username, page, query, sort, order }) => {
         const params = new URLSearchParams({ page: page.toString() });
         if (query) params.append("query", query);
+        if (sort) params.append("sort", sort);
+        if (order) params.append("order", order);
         return `users/${username}/inventory/?${params.toString()}`;
       },
       providesTags: ["Inventory"],
     }),
-    getWishlist: builder.query<PaginatedResponse<Wanted>, { page?: number; query?: string }>({
-      query: ({ page = 1, query } = {}) => {
+    getWishlist: builder.query<PaginatedResponse<Wanted>, { page?: number; query?: string } & SortParams>({
+      query: ({ page = 1, query, sort, order } = {}) => {
         const params = new URLSearchParams({ page: page.toString() });
         if (query) params.append("query", query);
+        if (sort) params.append("sort", sort);
+        if (order) params.append("order", order);
         return `wishlist/?${params.toString()}`;
       },
       providesTags: ["Wishlist"],
@@ -287,10 +301,12 @@ export const cardsApi = createApi({
       }),
       invalidatesTags: ["Wishlist", "Available", "Wanted"],
     }),
-    getUserWishlist: builder.query<PaginatedResponse<Wanted>, { username: string; page: number; query?: string }>({
-      query: ({ username, page, query }) => {
+    getUserWishlist: builder.query<PaginatedResponse<Wanted>, { username: string; page: number; query?: string } & SortParams>({
+      query: ({ username, page, query, sort, order }) => {
         const params = new URLSearchParams({ page: page.toString() });
         if (query) params.append("query", query);
+        if (sort) params.append("sort", sort);
+        if (order) params.append("order", order);
         return `users/${username}/wishlist/?${params.toString()}`;
       },
       providesTags: ["Wishlist"],

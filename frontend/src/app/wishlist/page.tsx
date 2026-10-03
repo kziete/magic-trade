@@ -18,6 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetWishlistQuery, useDeleteFromWishlistMutation } from "@/lib/api";
+import { useSortParams } from "@/lib/useSortParams";
 import { userProfileRoutes, loginRoute } from "@/lib/routes";
 import AddWantedPanel from "@/components/AddWantedPanel";
 import WishlistTable from "@/components/WishlistTable";
@@ -39,6 +40,7 @@ function WishlistPageContent() {
   const clipboard = useClipboard({ timeout: 2000 });
 
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const { sort, order, onSortChange } = useSortParams();
 
   // Load view mode from localStorage on mount
   useEffect(() => {
@@ -69,7 +71,7 @@ function WishlistPageContent() {
     isLoading,
     error,
   } = useGetWishlistQuery(
-    { page, query: debouncedSearch || undefined },
+    { page, query: debouncedSearch || undefined, sort, order },
     { skip: !user }
   );
 
@@ -105,7 +107,9 @@ function WishlistPageContent() {
   }, [authLoading, user, router, pathname, searchParams, isLoggingOut]);
 
   const handlePageChange = (newPage: number) => {
-    router.push(`/wishlist?page=${newPage}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`/wishlist?${params.toString()}`);
   };
 
   const handleShare = () => {
@@ -156,6 +160,9 @@ function WishlistPageContent() {
             emptyMessage="No tienes cartas en tu wishlist"
             onDelete={handleDelete}
             showMatchCount
+            sort={sort}
+            order={order}
+            onSortChange={onSortChange}
           />
         ) : (
           <WishlistGrid
@@ -165,6 +172,9 @@ function WishlistPageContent() {
             emptyMessage="No tienes cartas en tu wishlist"
             onDelete={handleDelete}
             showMatchCount
+            sort={sort}
+            order={order}
+            onSortChange={onSortChange}
           />
         )}
 

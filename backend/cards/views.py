@@ -19,6 +19,7 @@ from .models import Card, Variant, Available, Wanted, Contact, Conversation, Mes
 from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
+from .pricing import get_variant_price, price_value_for_sort
 
 def _annotate_fallback_image(queryset):
     first_variant_image = (
@@ -65,6 +66,79 @@ def _annotate_available_wanted_by(queryset):
     return queryset.annotate(
         wanted_count=Coalesce(Subquery(wanted_matches, output_field=IntegerField()), Value(0))
     )
+
+
+class SortableListMixin:
+    """Adds ?sort=card_name|set_name|price&order=asc|desc to a list view.
+
+    card_name/set_name are real columns reachable via a DB order_by. price
+    isn't stored anywhere (it's fetched live from Redis/Scryfall per variant
+    in the serializer), so sorting by it means materializing the queryset
+    and sorting in Python -- DRF's paginate_queryset() accepts a plain list
+    just as well as a queryset, so no other plumbing needs to change.
+    """
+    sort_db_fields: dict = {}
+
+    def get_sort_params(self):
+        sort = self.request.query_params.get('sort')
+        order = self.request.query_params.get('order', 'asc')
+        if order not in ('asc', 'desc'):
+            order = 'asc'
+        if sort not in (set(self.sort_db_fields) | {'price'}):
+            sort = None
+        return sort, order
+
+    def apply_db_sort(self, queryset, sort, order):
+        field = self.sort_db_fields[sort]
+        ordering = F(field).desc(nulls_last=True) if order == 'desc' else F(field).asc(nulls_last=True)
+        return queryset.order_by(ordering, '-id')
+
+    def price_key_for_item(self, item):
+        """Returns (scryfall_id, finish), or (None, None) if the item has no
+        priceable variant."""
+        raise NotImplementedError
+
+    def sort_by_price(self, queryset, order):
+        items = list(queryset)
+
+        def price_for(item):
+            scryfall_id, finish = self.price_key_for_item(item)
+            if not scryfall_id:
+                return None
+            return price_value_for_sort(get_variant_price(scryfall_id), finish)
+
+        decorated = [(price_for(item), item) for item in items]
+        with_price = sorted(
+            (pair for pair in decorated if pair[0] is not None),
+            key=lambda pair: pair[0],
+            reverse=(order == 'desc'),
+        )
+        without_price = [item for price, item in decorated if price is None]
+        return [item for _, item in with_price] + without_price
+
+    def sort_queryset(self, queryset):
+        sort, order = self.get_sort_params()
+        if sort is None:
+            return queryset
+        if sort == 'price':
+            return self.sort_by_price(queryset, order)
+        return self.apply_db_sort(queryset, sort, order)
+
+
+class AvailableSortMixin(SortableListMixin):
+    sort_db_fields = {'card_name': 'variant__card__name', 'set_name': 'variant__card_set__name'}
+
+    def price_key_for_item(self, item):
+        return item.variant.scryfall_id, item.finish
+
+
+class WantedSortMixin(SortableListMixin):
+    sort_db_fields = {'card_name': 'card__name', 'set_name': 'variant__card_set__name'}
+
+    def price_key_for_item(self, item):
+        if not item.variant_id:
+            return None, None
+        return item.variant.scryfall_id, item.finish
 
 
 class CardListView(ListAPIView):
@@ -151,7 +225,7 @@ class AvailableListView(ListAPIView):
         return queryset.select_related('user', 'variant__card', 'variant__card_set')
 
 
-class InventoryListView(ListCreateAPIView):
+class InventoryListView(AvailableSortMixin, ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -168,7 +242,8 @@ class InventoryListView(ListCreateAPIView):
         if query:
             queryset = queryset.filter(variant__card__name__icontains=query)
 
-        return _annotate_available_wanted_by(queryset)
+        queryset = _annotate_available_wanted_by(queryset)
+        return self.sort_queryset(queryset)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -182,7 +257,7 @@ class InventoryDetailView(RetrieveDestroyAPIView):
         return Available.objects.filter(user=self.request.user)
 
 
-class UserInventoryListView(ListAPIView):
+class UserInventoryListView(AvailableSortMixin, ListAPIView):
     serializer_class = AvailableSerializer
 
     def get_queryset(self):
@@ -195,10 +270,10 @@ class UserInventoryListView(ListAPIView):
         if query:
             queryset = queryset.filter(variant__card__name__icontains=query)
 
-        return queryset
+        return self.sort_queryset(queryset)
 
 
-class WishlistListView(ListCreateAPIView):
+class WishlistListView(WantedSortMixin, ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -215,7 +290,8 @@ class WishlistListView(ListCreateAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
+        queryset = _annotate_wishlist_matches(_annotate_fallback_image(queryset))
+        return self.sort_queryset(queryset)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -264,7 +340,7 @@ class AvailableWantedByView(ListAPIView):
         return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
 
 
-class UserWishlistListView(ListAPIView):
+class UserWishlistListView(WantedSortMixin, ListAPIView):
     serializer_class = WantedSerializer
 
     def get_queryset(self):
@@ -277,7 +353,8 @@ class UserWishlistListView(ListAPIView):
         if query:
             queryset = queryset.filter(card__name__icontains=query)
 
-        return _annotate_wishlist_matches(_annotate_fallback_image(queryset))
+        queryset = _annotate_wishlist_matches(_annotate_fallback_image(queryset))
+        return self.sort_queryset(queryset)
 
 
 class LatestAvailableListView(ListAPIView):

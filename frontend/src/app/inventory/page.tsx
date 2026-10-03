@@ -18,6 +18,7 @@ import { useDebouncedValue, useClipboard } from "@mantine/hooks";
 import { IconPlus, IconUpload, IconSearch, IconShare } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { useGetInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
+import { useSortParams } from "@/lib/useSortParams";
 import { userProfileRoutes, loginRoute } from "@/lib/routes";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
 import ImportInventoryPanel from "@/components/ImportInventoryPanel";
@@ -41,6 +42,7 @@ function InventoryPageContent() {
   const clipboard = useClipboard({ timeout: 2000 });
 
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const { sort, order, onSortChange } = useSortParams();
 
   // Load view mode from localStorage on mount
   useEffect(() => {
@@ -71,7 +73,7 @@ function InventoryPageContent() {
     isLoading,
     error,
   } = useGetInventoryQuery(
-    { page, query: debouncedSearch || undefined },
+    { page, query: debouncedSearch || undefined, sort, order },
     { skip: !user }
   );
 
@@ -107,7 +109,9 @@ function InventoryPageContent() {
   }, [authLoading, user, router, pathname, searchParams, isLoggingOut]);
 
   const handlePageChange = (newPage: number) => {
-    router.push(`/inventory?page=${newPage}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`/inventory?${params.toString()}`);
   };
 
   const handleShare = () => {
@@ -161,6 +165,9 @@ function InventoryPageContent() {
             emptyMessage="No tienes cartas en tu inventario"
             onDelete={handleDelete}
             showMatchCount
+            sort={sort}
+            order={order}
+            onSortChange={onSortChange}
           />
         ) : (
           <InventoryGrid
@@ -170,6 +177,9 @@ function InventoryPageContent() {
             emptyMessage="No tienes cartas en tu inventario"
             onDelete={handleDelete}
             showMatchCount
+            sort={sort}
+            order={order}
+            onSortChange={onSortChange}
           />
         )}
 

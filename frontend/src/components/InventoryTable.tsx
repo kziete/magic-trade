@@ -10,10 +10,11 @@ import {
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
-import { Available } from "@/lib/api";
+import { Available, SortField, SortOrder } from "@/lib/api";
 import { cardRoutes } from "@/lib/routes";
 import { priceForFinish } from "@/lib/cardPrice";
 import CardHoverPreview from "@/components/CardHoverPreview";
+import SortableTh from "@/components/SortableTh";
 
 interface InventoryTableProps {
   items: Available[];
@@ -22,6 +23,9 @@ interface InventoryTableProps {
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
   showMatchCount?: boolean;
+  sort: SortField | undefined;
+  order: SortOrder;
+  onSortChange: (field: SortField) => void;
 }
 
 export default function InventoryTable({
@@ -31,6 +35,9 @@ export default function InventoryTable({
   emptyMessage,
   onDelete,
   showMatchCount = false,
+  sort,
+  order,
+  onSortChange,
 }: InventoryTableProps) {
   if (isLoading) {
     return (
@@ -60,13 +67,13 @@ export default function InventoryTable({
     <Table striped highlightOnHover>
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Carta</Table.Th>
-          <Table.Th>Set</Table.Th>
+          <SortableTh field="card_name" label="Carta" activeSort={sort} order={order} onSort={onSortChange} />
+          <SortableTh field="set_name" label="Set" activeSort={sort} order={order} onSort={onSortChange} />
           <Table.Th>Finish</Table.Th>
           <Table.Th>Condición</Table.Th>
           <Table.Th>Idioma</Table.Th>
           <Table.Th>Cantidad</Table.Th>
-          <Table.Th>Precio</Table.Th>
+          <SortableTh field="price" label="Precio" activeSort={sort} order={order} onSort={onSortChange} />
           {showMatchCount && <Table.Th>Buscan</Table.Th>}
           {onDelete && <Table.Th></Table.Th>}
         </Table.Tr>

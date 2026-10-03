@@ -217,6 +217,132 @@ class RefreshActiveCardPricesTaskTests(VariantFixtureMixin, TestCase):
         self.assertEqual(mock_sleep.call_count, 2)
 
 
+class PriceValueForSortTests(TestCase):
+    def test_foil_uses_usd_foil(self):
+        price = {"usd": "1.00", "usd_foil": "2.50"}
+        self.assertEqual(pricing.price_value_for_sort(price, "foil"), 2.50)
+
+    def test_non_foil_uses_usd(self):
+        price = {"usd": "1.00", "usd_foil": "2.50"}
+        self.assertEqual(pricing.price_value_for_sort(price, "nonfoil"), 1.00)
+        self.assertEqual(pricing.price_value_for_sort(price, None), 1.00)
+
+    def test_missing_field_is_none(self):
+        self.assertIsNone(pricing.price_value_for_sort({"usd": None, "usd_foil": "2.50"}, "nonfoil"))
+
+    def test_no_price_is_none(self):
+        self.assertIsNone(pricing.price_value_for_sort(None, "nonfoil"))
+
+
+class ListSortTests(VariantFixtureMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="sortowner")
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _make_named_variant(self, scryfall_id, card_name, set_name):
+        card_set = Set.objects.create(short=scryfall_id[:3], name=set_name)
+        card = Card.objects.create(oracle_id="oracle-" + scryfall_id, name=card_name)
+        return Variant.objects.create(
+            scryfall_id=scryfall_id,
+            card=card,
+            collector_number="1",
+            image="http://example.com/image.jpg",
+            card_set=card_set,
+            finishes=["nonfoil", "foil"],
+        )
+
+    def test_inventory_sort_by_card_name(self):
+        zebra = self._make_named_variant("inv-z", "Zebra", "Set A")
+        alpha = self._make_named_variant("inv-a", "Alpha", "Set B")
+        Available.objects.create(user=self.user, variant=zebra, finish="nonfoil")
+        Available.objects.create(user=self.user, variant=alpha, finish="nonfoil")
+
+        response = self.client.get("/api/inventory/?sort=card_name&order=asc")
+        self.assertEqual([r["card_name"] for r in response.data["results"]], ["Alpha", "Zebra"])
+
+        response = self.client.get("/api/inventory/?sort=card_name&order=desc")
+        self.assertEqual([r["card_name"] for r in response.data["results"]], ["Zebra", "Alpha"])
+
+    def test_inventory_sort_by_set_name(self):
+        v1 = self._make_named_variant("inv-s1", "Card 1", "Beta Set")
+        v2 = self._make_named_variant("inv-s2", "Card 2", "Alpha Set")
+        Available.objects.create(user=self.user, variant=v1, finish="nonfoil")
+        Available.objects.create(user=self.user, variant=v2, finish="nonfoil")
+
+        response = self.client.get("/api/inventory/?sort=set_name&order=asc")
+        self.assertEqual([r["set_name"] for r in response.data["results"]], ["Alpha Set", "Beta Set"])
+
+    def test_inventory_sort_by_price_puts_missing_price_last(self):
+        cheap = self._make_named_variant("inv-p-cheap", "Cheap Card", "Set A")
+        pricey = self._make_named_variant("inv-p-pricey", "Pricey Card", "Set A")
+        unpriced = self._make_named_variant("inv-p-none", "Unpriced Card", "Set A")
+        Available.objects.create(user=self.user, variant=cheap, finish="nonfoil")
+        Available.objects.create(user=self.user, variant=pricey, finish="nonfoil")
+        Available.objects.create(user=self.user, variant=unpriced, finish="nonfoil")
+
+        prices = {
+            "inv-p-cheap": {"usd": "1.00", "usd_foil": None},
+            "inv-p-pricey": {"usd": "50.00", "usd_foil": None},
+            "inv-p-none": None,
+        }
+
+        def fake_price(scryfall_id):
+            return prices[scryfall_id]
+
+        with patch("cards.views.get_variant_price", side_effect=fake_price), \
+                patch("cards.serializers.get_variant_price", side_effect=fake_price):
+            desc = self.client.get("/api/inventory/?sort=price&order=desc")
+            asc = self.client.get("/api/inventory/?sort=price&order=asc")
+
+        self.assertEqual(
+            [r["card_name"] for r in desc.data["results"]],
+            ["Pricey Card", "Cheap Card", "Unpriced Card"],
+        )
+        self.assertEqual(
+            [r["card_name"] for r in asc.data["results"]],
+            ["Cheap Card", "Pricey Card", "Unpriced Card"],
+        )
+
+    def test_inventory_invalid_sort_falls_back_without_error(self):
+        variant = self._make_named_variant("inv-bogus", "Some Card", "Set A")
+        Available.objects.create(user=self.user, variant=variant, finish="nonfoil")
+
+        response = self.client.get("/api/inventory/?sort=bogus")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 1)
+
+    def test_wishlist_sort_by_set_name_puts_any_edition_last(self):
+        named = self._make_named_variant("wl-s1", "Named Card", "Alpha Set")
+        Wanted.objects.create(user=self.user, card=named.card, variant=named)
+        any_edition_card = Card.objects.create(oracle_id="oracle-any", name="Any Edition Card")
+        Wanted.objects.create(user=self.user, card=any_edition_card, variant=None)
+
+        response = self.client.get("/api/wishlist/?sort=set_name&order=asc")
+
+        self.assertEqual(
+            [r["card_name"] for r in response.data["results"]],
+            ["Named Card", "Any Edition Card"],
+        )
+
+    def test_wishlist_sort_by_price_without_variant_goes_last(self):
+        priced = self._make_named_variant("wl-p1", "Priced Card", "Set A")
+        Wanted.objects.create(user=self.user, card=priced.card, variant=priced, finish="nonfoil")
+        any_edition_card = Card.objects.create(oracle_id="oracle-any2", name="Any Edition Card")
+        wanted_any = Wanted.objects.create(user=self.user, card=any_edition_card, variant=None)
+        wanted_any.fallback_image = None
+
+        with patch("cards.views.get_variant_price", return_value={"usd": "5.00", "usd_foil": None}), \
+                patch("cards.serializers.get_variant_price", return_value={"usd": "5.00", "usd_foil": None}):
+            response = self.client.get("/api/wishlist/?sort=price&order=asc")
+
+        self.assertEqual(
+            [r["card_name"] for r in response.data["results"]],
+            ["Priced Card", "Any Edition Card"],
+        )
+
+
 class ConversationModelTests(TestCase):
     def test_get_or_create_between_is_order_independent(self):
         alice = User.objects.create(username="alice")

@@ -13,6 +13,7 @@ import {
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconSearch } from "@tabler/icons-react";
 import { useGetUserWishlistQuery } from "@/lib/api";
+import { useSortParams } from "@/lib/useSortParams";
 import WishlistTable from "@/components/WishlistTable";
 import WishlistGrid from "@/components/WishlistGrid";
 import InventoryViewToggle, { ViewMode } from "@/components/InventoryViewToggle";
@@ -30,6 +31,7 @@ function UserWishlistPageContent() {
   const isFirstRender = useRef(true);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const { sort, order, onSortChange } = useSortParams();
 
   // Load view mode from localStorage on mount
   useEffect(() => {
@@ -48,7 +50,7 @@ function UserWishlistPageContent() {
     data: wishlistData,
     isLoading,
     error,
-  } = useGetUserWishlistQuery({ username, page, query: debouncedSearch || undefined });
+  } = useGetUserWishlistQuery({ username, page, query: debouncedSearch || undefined, sort, order });
 
   // Reset to page 1 whenever the filter changes (but not on the initial mount,
   // so deep-linking to a specific page still works before the user types).
@@ -67,7 +69,9 @@ function UserWishlistPageContent() {
     : 1;
 
   const handlePageChange = (newPage: number) => {
-    router.push(`/profile/${username}/wishlist?page=${newPage}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`/profile/${username}/wishlist?${params.toString()}`);
   };
 
   return (
@@ -90,6 +94,9 @@ function UserWishlistPageContent() {
           isLoading={isLoading}
           error={!!error}
           emptyMessage={`${username} no tiene cartas en su wishlist`}
+          sort={sort}
+          order={order}
+          onSortChange={onSortChange}
         />
       ) : (
         <WishlistGrid
@@ -98,6 +105,9 @@ function UserWishlistPageContent() {
           error={!!error}
           emptyMessage={`${username} no tiene cartas en su wishlist`}
           cols={{ base: 2, xs: 2, sm: 3, md: 4 }}
+          sort={sort}
+          order={order}
+          onSortChange={onSortChange}
         />
       )}
 
