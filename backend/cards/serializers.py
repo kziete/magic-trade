@@ -59,7 +59,7 @@ class VariantDetailSerializer(VariantSerializer):
         fields = VariantSerializer.Meta.fields + ['price']
 
     def get_price(self, obj):
-        return get_variant_price(obj.scryfall_id)
+        return get_variant_price(obj.scryfall_id, sync=True)
 
 
 class AvailableSerializer(serializers.ModelSerializer):

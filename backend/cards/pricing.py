@@ -4,6 +4,7 @@ import logging
 import redis
 import requests
 from django.conf import settings
+from kombu.exceptions import OperationalError
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +64,23 @@ def fetch_and_cache_variant_price(scryfall_id: str) -> dict | None:
     return result
 
 
-def get_variant_price(scryfall_id: str) -> dict | None:
-    """Cache-first lookup: reads Redis if available, otherwise fetches from
-    Scryfall and caches it. Returns None if no price is available or Scryfall
-    failed recently (negative cache)."""
+def _trigger_background_fetch(scryfall_id: str) -> None:
+    from .tasks import fetch_and_cache_variant_price_task
+
+    try:
+        fetch_and_cache_variant_price_task.delay(scryfall_id)
+    except OperationalError:
+        logger.warning("Could not enqueue price fetch for %s: broker unavailable", scryfall_id, exc_info=True)
+
+
+def get_variant_price(scryfall_id: str, *, sync: bool = False) -> dict | None:
+    """Cache-first lookup: reads Redis if available. On a cache miss, by
+    default this triggers a background refresh and returns None immediately
+    -- meant for list endpoints that would otherwise fire one blocking
+    Scryfall request per row. Pass sync=True (e.g. from a detail endpoint
+    resolving a single variant) to fetch from Scryfall synchronously instead.
+    Returns None if no price is available or Scryfall failed recently
+    (negative cache)."""
     key = _cache_key(scryfall_id)
     try:
         cached = _redis_client.get(key)
@@ -80,7 +94,11 @@ def get_variant_price(scryfall_id: str) -> dict | None:
             return None
         return data
 
-    return fetch_and_cache_variant_price(scryfall_id)
+    if sync:
+        return fetch_and_cache_variant_price(scryfall_id)
+
+    _trigger_background_fetch(scryfall_id)
+    return None
 
 
 def price_value_for_sort(price: dict | None, finish: str | None) -> float | None:

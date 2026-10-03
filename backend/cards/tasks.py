@@ -116,6 +116,11 @@ def send_wishlist_notification_email(self, user_id, matches):
 
 
 @shared_task
+def fetch_and_cache_variant_price_task(scryfall_id):
+    fetch_and_cache_variant_price(scryfall_id)
+
+
+@shared_task
 def refresh_active_card_prices():
     """Runs every settings.CARD_PRICE_REFRESH_INTERVAL_MINUTES (see
     core/celery.py beat_schedule). Refreshes the Redis price cache only for

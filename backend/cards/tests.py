@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
+from kombu.exceptions import OperationalError
 from rest_framework.test import APIClient
 
 from . import pricing
@@ -48,7 +49,7 @@ class PricingTests(TestCase):
             200, {"prices": {"usd": "5.00", "usd_foil": "10.00", "eur": "4.00"}}
         )
 
-        result = pricing.get_variant_price("abc")
+        result = pricing.get_variant_price("abc", sync=True)
 
         self.assertEqual(result, {"usd": "5.00", "usd_foil": "10.00"})
         self.mock_requests_get.assert_called_once()
@@ -67,7 +68,7 @@ class PricingTests(TestCase):
             200, {"prices": {"usd": None, "usd_foil": None}}
         )
 
-        result = pricing.get_variant_price("abc")
+        result = pricing.get_variant_price("abc", sync=True)
 
         self.assertEqual(result, {"usd": None, "usd_foil": None})
         self.mock_redis.set.assert_called_once_with(
@@ -78,7 +79,7 @@ class PricingTests(TestCase):
         self.mock_redis.get.return_value = None
         self.mock_requests_get.return_value = _mock_response(404)
 
-        result = pricing.get_variant_price("missing")
+        result = pricing.get_variant_price("missing", sync=True)
 
         self.assertIsNone(result)
         self.mock_redis.set.assert_called_once_with(
@@ -91,7 +92,7 @@ class PricingTests(TestCase):
         self.mock_redis.get.return_value = None
         self.mock_requests_get.return_value = _mock_response(503)
 
-        result = pricing.get_variant_price("abc")
+        result = pricing.get_variant_price("abc", sync=True)
 
         self.assertIsNone(result)
         self.mock_redis.set.assert_called_once_with(
@@ -104,7 +105,7 @@ class PricingTests(TestCase):
         self.mock_redis.get.return_value = None
         self.mock_requests_get.side_effect = requests.Timeout
 
-        result = pricing.get_variant_price("abc")
+        result = pricing.get_variant_price("abc", sync=True)
 
         self.assertIsNone(result)
         self.mock_redis.set.assert_called_once_with(
@@ -120,6 +121,27 @@ class PricingTests(TestCase):
 
         self.assertIsNone(result)
         self.mock_requests_get.assert_not_called()
+
+    def test_get_variant_price_cache_miss_defaults_to_background_fetch(self):
+        self.mock_redis.get.return_value = None
+
+        with patch("cards.pricing._trigger_background_fetch") as mock_trigger:
+            result = pricing.get_variant_price("abc")
+
+        self.assertIsNone(result)
+        mock_trigger.assert_called_once_with("abc")
+        self.mock_requests_get.assert_not_called()
+        self.mock_redis.set.assert_not_called()
+
+    def test_background_fetch_enqueues_task(self):
+        with patch("cards.tasks.fetch_and_cache_variant_price_task.delay") as mock_delay:
+            pricing._trigger_background_fetch("abc")
+
+        mock_delay.assert_called_once_with("abc")
+
+    def test_background_fetch_swallows_broker_errors(self):
+        with patch("cards.tasks.fetch_and_cache_variant_price_task.delay", side_effect=OperationalError):
+            pricing._trigger_background_fetch("abc")  # should not raise
 
     def test_fetch_and_cache_ignores_existing_cache(self):
         self.mock_requests_get.return_value = _mock_response(
@@ -161,7 +183,7 @@ class SerializerPriceTests(VariantFixtureMixin, TestCase):
         with patch("cards.serializers.get_variant_price", return_value=fixed_price) as mock_get:
             data = VariantDetailSerializer(variant).data
         self.assertEqual(data["price"], fixed_price)
-        mock_get.assert_called_once_with("variant-1b")
+        mock_get.assert_called_once_with("variant-1b", sync=True)
 
     def test_available_serializer_includes_price(self):
         variant = self._make_variant("variant-2")
