@@ -2,6 +2,10 @@
 	email {$ACME_EMAIL}
 }
 
+magic-trade.kziete.cl {
+	redir https://cardtones.com{uri} permanent
+}
+
 {$DOMAIN} {
 	reverse_proxy frontend:3000
 }
