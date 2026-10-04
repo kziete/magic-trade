@@ -1,11 +1,13 @@
 "use client";
 
-import { Drawer, Stack, Loader, Center, Card, Text, Group, Badge, Button } from "@mantine/core";
+import Link from "next/link";
+import { Drawer, Stack, Loader, Center, Card, Text, Group, Badge, Button, Anchor } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useGetConversationsQuery } from "@/lib/api";
 import { useMessagesDrawer } from "@/lib/MessagesDrawerContext";
 import { useAuth } from "@/lib/AuthProvider";
 import MessageThread from "@/components/MessageThread";
+import { userProfileRoutes } from "@/lib/routes";
 
 const POLL_INTERVAL_MS = 15_000;
 
@@ -33,7 +35,25 @@ export default function MessagesDrawer() {
       onClose={close}
       position="right"
       size="sm"
-      title={conversationId ? activeConversation?.other_username ?? "Conversación" : "Mensajes"}
+      title={
+        conversationId ? (
+          activeConversation ? (
+            <Anchor
+              component={Link}
+              href={userProfileRoutes.inventory(activeConversation.other_username)}
+              size="sm"
+              fw={600}
+              underline="hover"
+            >
+              {activeConversation.other_username}
+            </Anchor>
+          ) : (
+            "Conversación"
+          )
+        ) : (
+          "Mensajes"
+        )
+      }
       withOverlay={false}
       trapFocus={false}
       lockScroll={false}

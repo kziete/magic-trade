@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { MantineProvider, ColorSchemeScript, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import StoreProvider from "@/lib/StoreProvider";
 import AuthProvider from "@/lib/AuthProvider";
 import MessagesDrawerProvider from "@/lib/MessagesDrawerContext";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import MessagesDrawer from "@/components/MessagesDrawer";
 import { theme } from "@/lib/theme";
 import "@mantine/core/styles.css";
@@ -47,7 +48,8 @@ export default function RootLayout({
             <AuthProvider>
               <MessagesDrawerProvider>
                 <Header />
-                {children}
+                <Box style={{ flex: 1 }}>{children}</Box>
+                <Footer />
                 <MessagesDrawer />
               </MessagesDrawerProvider>
             </AuthProvider>
