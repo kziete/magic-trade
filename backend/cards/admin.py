@@ -26,5 +26,4 @@ class AvailableAdmin(admin.ModelAdmin):
 class WantedAdmin(admin.ModelAdmin):
     raw_id_fields = ["card", "variant", "user"]
 
-
-# Register your models here.
+admin.site.register(models.Conversation)
