@@ -34,7 +34,7 @@ export default function Header() {
             </Text>
           </Link>
 
-          <Box mx="md" style={{ flex: 1, minWidth: 0 }}>
+          <Box visibleFrom="sm" mx="md" style={{ flex: 1, minWidth: 0 }}>
             <CardSearch size="sm" />
           </Box>
 
@@ -165,6 +165,10 @@ export default function Header() {
             )}
           </Group>
         </Group>
+
+        <Box hiddenFrom="sm" pb="sm">
+          <CardSearch size="sm" />
+        </Box>
       </Container>
     </Box>
   );
