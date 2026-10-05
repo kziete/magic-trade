@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { User, useLazyGetMeQuery } from "./authApi";
+import type { User } from "./authApi";
+import { useLazyGetMeQuery } from "./api";
 
 interface AuthContextType {
   user: User | null;

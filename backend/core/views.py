@@ -29,6 +29,7 @@ class MeView(APIView):
             'phone': profile.phone if profile else None,
             'contact_email': profile.contact_email if profile else None,
             'facebook_url': profile.facebook_url if profile else None,
+            'bio': profile.bio if profile else None,
         })
 
     def patch(self, request):

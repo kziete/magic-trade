@@ -11,9 +11,10 @@ import ContactUserPanel from "@/components/ContactUserPanel";
 
 interface UserProfileSidebarProps {
   username: string;
+  bio?: string | null;
 }
 
-export default function UserProfileSidebar({ username }: UserProfileSidebarProps) {
+export default function UserProfileSidebar({ username, bio }: UserProfileSidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
   const [contactOpened, setContactOpened] = useState(false);
@@ -38,6 +39,11 @@ export default function UserProfileSidebar({ username }: UserProfileSidebarProps
         <Text fw={600} size="lg">
           {username}
         </Text>
+        {bio && (
+          <Text size="sm" c="dimmed" ta="center">
+            {bio}
+          </Text>
+        )}
 
         {!isOwnProfile && (
           <Button

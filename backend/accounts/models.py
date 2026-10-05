@@ -9,6 +9,7 @@ class Profile(models.Model):
     contact_email = models.EmailField(null=True, blank=True)
     facebook_url = models.URLField(null=True, blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Profile de {self.user.username}"

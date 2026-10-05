@@ -9,6 +9,7 @@ export interface User {
   phone: string | null;
   contact_email: string | null;
   facebook_url: string | null;
+  bio: string | null;
 }
 
 export interface LoginRequest {
@@ -36,13 +37,6 @@ export interface RegisterResponse {
 export interface SocialLoginRequest {
   access_token?: string;
   code?: string;
-}
-
-export interface UpdateProfileRequest {
-  username?: string;
-  phone?: string | null;
-  contact_email?: string | null;
-  facebook_url?: string | null;
 }
 
 const baseQuery = fetchBaseQuery({
@@ -94,7 +88,6 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Me"],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -124,18 +117,6 @@ export const authApi = createApi({
         body: data,
       }),
     }),
-    getMe: builder.query<User, void>({
-      query: () => "me/",
-      providesTags: ["Me"],
-    }),
-    updateProfile: builder.mutation<User, UpdateProfileRequest>({
-      query: (body) => ({
-        url: "me/",
-        method: "PATCH",
-        body,
-      }),
-      invalidatesTags: ["Me"],
-    }),
   }),
 });
 
@@ -144,7 +125,4 @@ export const {
   useRegisterMutation,
   useGoogleLoginMutation,
   useFacebookLoginMutation,
-  useGetMeQuery,
-  useLazyGetMeQuery,
-  useUpdateProfileMutation,
 } = authApi;

@@ -85,7 +85,7 @@ export default function ContactDetailPage() {
                 </Anchor>
               </Title>
               <Text c="dimmed" size="sm">
-                Quiere contactarte · {formatDate(data.created_at)}
+                Nuevo mensaje · {formatDate(data.created_at)}
               </Text>
             </Stack>
 

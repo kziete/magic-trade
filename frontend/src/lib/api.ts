@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import type { User } from "./authApi";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "/api/",
@@ -167,6 +168,12 @@ export interface ImportInventoryResult {
 
 export interface UserProfile {
   username: string;
+  bio: string | null;
+}
+
+export interface UpdateProfileRequest {
+  username?: string;
+  bio?: string | null;
 }
 
 export interface Message {
@@ -319,6 +326,18 @@ export const cardsApi = createApi({
       query: (username) => `users/${username}/`,
       providesTags: ["UserProfile"],
     }),
+    getMe: builder.query<User, void>({
+      query: () => "auth/me/",
+      providesTags: ["UserProfile"],
+    }),
+    updateProfile: builder.mutation<User, UpdateProfileRequest>({
+      query: (body) => ({
+        url: "auth/me/",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["UserProfile"],
+    }),
     getUserMatchesAvailable: builder.query<Available[], string>({
       query: (username) => `users/${username}/matches/available/`,
       providesTags: ["Available"],
@@ -421,6 +440,9 @@ export const {
   useGetUserWishlistQuery,
   useGetWishlistMatchesQuery,
   useGetUserProfileQuery,
+  useGetMeQuery,
+  useLazyGetMeQuery,
+  useUpdateProfileMutation,
   useContactUserMutation,
   useGetUserMatchesAvailableQuery,
   useGetUserMatchesWantedQuery,

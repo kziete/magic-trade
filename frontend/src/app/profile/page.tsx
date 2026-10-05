@@ -7,14 +7,14 @@ import {
   Title,
   Stack,
   TextInput,
+  Textarea,
   Button,
   Alert,
   Loader,
   Center,
 } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
-import { useGetMeQuery, useUpdateProfileMutation } from "@/lib/authApi";
+import { useGetMeQuery, useUpdateProfileMutation } from "@/lib/api";
 import { loginRoute } from "@/lib/routes";
 
 export default function ProfilePage() {
@@ -28,9 +28,7 @@ export default function ProfilePage() {
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
   const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [facebookUrl, setFacebookUrl] = useState("");
+  const [bio, setBio] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -43,9 +41,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (me) {
       setUsername(me.username);
-      setPhone(me.phone ?? "");
-      setContactEmail(me.contact_email ?? "");
-      setFacebookUrl(me.facebook_url ?? "");
+      setBio(me.bio ?? "");
     }
   }, [me]);
 
@@ -62,9 +58,7 @@ export default function ProfilePage() {
     try {
       await updateProfile({
         username: trimmedUsername,
-        phone: phone.trim() || null,
-        contact_email: contactEmail.trim() || null,
-        facebook_url: facebookUrl.trim() || null,
+        bio: bio.trim() || null,
       }).unwrap();
       setSuccess(true);
     } catch (err) {
@@ -92,7 +86,7 @@ export default function ProfilePage() {
   return (
     <Container size="xs" py="xl">
       <Stack gap="lg">
-        <Title order={1}>Datos de contacto</Title>
+        <Title order={1}>Mis datos</Title>
 
         <Stack gap="md">
           {error && <Alert color="red">{error}</Alert>}
@@ -105,31 +99,14 @@ export default function ProfilePage() {
             onChange={(e) => setUsername(e.currentTarget.value)}
           />
 
-          <TextInput
-            label="Teléfono"
-            placeholder="Ej: +54 9 11 1234-5678"
-            value={phone}
-            onChange={(e) => setPhone(e.currentTarget.value)}
+          <Textarea
+            label="Descripción"
+            placeholder="vendo/cambio"
+            value={bio}
+            onChange={(e) => setBio(e.currentTarget.value)}
+            autosize
+            minRows={2}
           />
-
-          <TextInput
-            label="Email de contacto"
-            placeholder="contacto@ejemplo.com"
-            type="email"
-            value={contactEmail}
-            onChange={(e) => setContactEmail(e.currentTarget.value)}
-          />
-
-          <TextInput
-            label="Facebook"
-            placeholder="https://facebook.com/tu-perfil"
-            value={facebookUrl}
-            onChange={(e) => setFacebookUrl(e.currentTarget.value)}
-          />
-
-          <Alert color="blue" icon={<IconInfoCircle size={18} />}>
-            Estos datos se enviarán cuando intentes contactar a alguien.
-          </Alert>
 
           <Button onClick={handleSubmit} loading={isSaving}>
             Guardar

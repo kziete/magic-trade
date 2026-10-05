@@ -371,8 +371,10 @@ class LatestAvailableListView(ListAPIView):
 class UserProfileView(APIView):
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
+        profile = getattr(user, 'profile', None)
         return Response({
             'username': user.username,
+            'bio': profile.bio if profile else None,
         })
 
 
@@ -412,44 +414,30 @@ class ContactUserView(APIView):
         if not to_email:
             return Response({'conversation_id': conversation.id}, status=status.HTTP_201_CREATED)
 
-        sender_profile = getattr(request.user, 'profile', None)
-        sender_email = (sender_profile.contact_email if sender_profile else None) or request.user.email
-
-        profile_url = f"{settings.FRONTEND_URL}/profile/{request.user.username}"
-
-        contact_lines = [f"Email: {sender_email}"]
-        if sender_profile and sender_profile.phone:
-            contact_lines.append(f"Teléfono: {sender_profile.phone}")
-        if sender_profile and sender_profile.facebook_url:
-            contact_lines.append(f"Facebook: {sender_profile.facebook_url}")
-        contact_lines.append(f"Perfil: {profile_url}")
+        conversation_url = f"{settings.FRONTEND_URL}/messages/{conversation.id}"
 
         text_parts = [
-            f"{request.user.username} quiere contactarte a través de Magic Trade.",
-            "",
-            "Datos de contacto:",
-            "\n".join(contact_lines),
+            f"Tienes un nuevo mensaje de {request.user.username} en Cardtones.",
             "",
             "Mensaje:",
             sender_message,
+            "",
+            f"Responde aquí: {conversation_url}",
         ]
 
         html_body = render_to_string('cards/contact_email.html', {
             'sender_username': request.user.username,
-            'sender_email': sender_email,
-            'phone': sender_profile.phone if sender_profile else None,
-            'facebook_url': sender_profile.facebook_url if sender_profile else None,
-            'profile_url': profile_url,
+            'conversation_url': conversation_url,
             'message': sender_message,
         })
 
         try:
             send_contact_email.delay(
                 to_email=to_email,
-                subject=f"{request.user.username} quiere contactarte en Magic Trade",
+                subject=f"Tienes un nuevo mensaje de {request.user.username} en Cardtones",
                 text="\n".join(text_parts),
                 html_body=html_body,
-                reply_to=sender_email,
+                reply_to=request.user.email,
             )
         except OperationalError:
             return Response(
