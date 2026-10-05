@@ -91,7 +91,7 @@ def send_wishlist_notification_email(self, user_id, matches):
 
     text_lines = [
         f"- {m['card_name']} ({m['set_name']}) — disponible por {m['seller_username']}: "
-        f"{settings.FRONTEND_URL}/cards/{m['card_id']}/matches"
+        f"{settings.FRONTEND_URL}/profile/{m['seller_username']}"
         for m in matches
     ]
     text = (

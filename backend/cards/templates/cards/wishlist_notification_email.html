@@ -29,7 +29,7 @@
                     <td style="padding:16px 20px;">
                       {% for match in matches %}
                       <p style="margin:0 0 {% if not forloop.last %}14px{% else %}0{% endif %}; font-size:14px; line-height:1.5; color:#1e1e1e;">
-                        <a href="{{ frontend_url }}/cards/{{ match.card_id }}/matches" style="color:#3560b0; text-decoration:none; font-weight:600;">{{ match.card_name }}</a><br />
+                        <a href="{{ frontend_url }}/profile/{{ match.seller_username }}" style="color:#3560b0; text-decoration:none; font-weight:600;">{{ match.card_name }}</a><br />
                         <span style="color:#3b3b3b;">{{ match.set_name }} — disponible por {{ match.seller_username }}</span>
                       </p>
                       {% endfor %}
