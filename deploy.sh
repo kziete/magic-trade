@@ -1,21 +1,7 @@
 #!/bin/bash
-# Deploy the latest code to production with (near) zero downtime, using the
-# docker-rollout plugin (https://github.com/Wowu/docker-rollout).
-#
-# How it works: for each of web/frontend, docker-rollout scales the service
-# to 2 replicas (old + new image running side by side), waits for the new
-# container's Docker healthcheck to pass, then removes the old one. Caddy
-# talks to services by their Compose service name (e.g. "web:8000"), and
-# Docker's internal DNS round-robins across both replicas during the
-# overlap, so no proxy reconfiguration is needed.
-#
-# Caveat: this is not a database-migration-aware rollout. Our entrypoint.sh
-# runs `migrate` on every container start, so the new "web" replica applies
-# migrations while the OLD replica is still serving traffic on the old code.
-# If a migration is backward-incompatible with the old code, requests to the
-# old replica can fail during that overlap window (typically a few seconds,
-# bounded by the healthcheck's start_period). Keep migrations additive/
-# backward-compatible if you want this to stay safe.
+# Deploy the latest code to production: stop the stack, build new images,
+# bring it back up. This has downtime for the duration of the build + restart
+# (unlike a zero-downtime rollout), but is simple and predictable.
 
 set -euo pipefail
 
@@ -25,93 +11,16 @@ COMPOSE_FILE="docker-compose.prod.yml"
 
 trap 'echo "Deploy failed (line $LINENO). Check '\''docker compose -f docker-compose.prod.yml logs\'' for details." >&2' ERR
 
-PLUGIN_PATH="$HOME/.docker/cli-plugins/docker-rollout"
-if [ ! -x "$PLUGIN_PATH" ]; then
-  # Note: `docker rollout --help` is NOT a reliable "is it installed" check —
-  # Docker resolves --help before checking if "rollout" is a real subcommand,
-  # so it prints the generic docker help (exit 0) even when the plugin is
-  # missing. Check the plugin file itself instead.
-  echo "==> Installing docker-rollout plugin..."
-  mkdir -p "$HOME/.docker/cli-plugins"
-  curl -fsSL https://raw.githubusercontent.com/wowu/docker-rollout/main/docker-rollout \
-    -o "$PLUGIN_PATH"
-  chmod +x "$PLUGIN_PATH"
-fi
-
 echo "==> Pulling latest code..."
 git pull
 
-echo "==> Building new images (old containers keep serving traffic during this step)..."
-# BuildKit (the default builder) parallelizes independent Dockerfile stages
-# across all available cores with no memory cap of its own, which can be
-# enough load on a small droplet to make the live containers sluggish for
-# real traffic mid-deploy. Neither Dockerfile uses BuildKit-only syntax
-# (cache mounts, heredocs, etc.), so we fall back to the classic builder for
-# this step, which honors --memory and builds one Dockerfile step at a time
-# instead of BuildKit's concurrent stage graph. We also build web and
-# frontend one at a time (not in the same `build` call) so their resource
-# usage doesn't stack, and run under `nice`/`ionice` so the build yields CPU
-# and disk I/O priority to the containers actually serving traffic.
-export DOCKER_BUILDKIT=0
-export COMPOSE_DOCKER_CLI_BUILD=0
+echo "==> Stopping server..."
+docker compose -f "$COMPOSE_FILE" down
 
-# Size each service's cap off currently-available host memory (MemAvailable
-# already accounts for what the live containers are using, unlike MemTotal)
-# so this adapts if the droplet is ever resized instead of relying on a
-# guessed constant. The frontend needs meaningfully more than the backend:
-# `next build`'s TypeScript-check phase got SIGKILLed by the kernel OOM
-# killer at a flat 1g cap even though the backend's `pip install` comfortably
-# fit in that same 1g, so frontend gets a bigger share AND a higher floor.
-# Override with DEPLOY_BUILD_MEMORY_WEB_MB / DEPLOY_BUILD_MEMORY_FRONTEND_MB
-# (plain megabyte numbers) if your droplet needs different values.
-AVAILABLE_MB="$(awk '/MemAvailable/ {print int($2/1024); exit}' /proc/meminfo 2>/dev/null || echo 0)"
-if [ "$AVAILABLE_MB" -gt 0 ]; then
-  WEB_MEMORY_MB="${DEPLOY_BUILD_MEMORY_WEB_MB:-$(( AVAILABLE_MB * 30 / 100 ))}"
-  FRONTEND_MEMORY_MB="${DEPLOY_BUILD_MEMORY_FRONTEND_MB:-$(( AVAILABLE_MB * 60 / 100 ))}"
-else
-  WEB_MEMORY_MB="${DEPLOY_BUILD_MEMORY_WEB_MB:-1024}"
-  FRONTEND_MEMORY_MB="${DEPLOY_BUILD_MEMORY_FRONTEND_MB:-2048}"
-fi
-if [ "$FRONTEND_MEMORY_MB" -lt 2048 ]; then
-  FRONTEND_MEMORY_MB=2048
-  echo "    (warning: available memory is tight for a Next.js build; forcing the frontend cap to ${FRONTEND_MEMORY_MB}m anyway -- if it still OOMs, this droplet needs more RAM or swap)"
-fi
-echo "    (build memory caps: web=${WEB_MEMORY_MB}m frontend=${FRONTEND_MEMORY_MB}m)"
+echo "==> Building images..."
+docker compose -f "$COMPOSE_FILE" build
 
-# V8 sizes its default heap off total *host* memory, not this container's
-# cgroup limit, so left unconstrained it can try to grow past our --memory
-# cap regardless of what we set that cap to. Pin it explicitly, comfortably
-# under the cap to leave room for Node/npm/OS overhead (see frontend/Dockerfile).
-FRONTEND_NODE_OLD_SPACE_MB=$(( FRONTEND_MEMORY_MB * 75 / 100 ))
-
-THROTTLE=(nice -n 19)
-if command -v ionice >/dev/null 2>&1; then
-  THROTTLE=(ionice -c2 -n7 "${THROTTLE[@]}")
-fi
-
-"${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "${WEB_MEMORY_MB}m" web
-"${THROTTLE[@]}" docker compose -f "$COMPOSE_FILE" build --memory "${FRONTEND_MEMORY_MB}m" \
-  --build-arg "NODE_OPTIONS=--max-old-space-size=${FRONTEND_NODE_OLD_SPACE_MB}" frontend
-
-echo "==> Rolling out web..."
-docker rollout -f "$COMPOSE_FILE" web -t 40
-
-# celery/celery-beat share the image web just built/tagged (see
-# docker-compose.prod.yml), so no separate build step is needed here. They
-# skip docker-rollout too: neither has a healthcheck (which rollout needs to
-# know when to cut over) and neither serves live HTTP traffic, so a plain
-# recreate is enough -- queued tasks aren't lost across the brief restart
-# since Redis persists them to disk, and beat just resumes its schedule.
-echo "==> Restarting celery worker and beat with the new image..."
-docker compose -f "$COMPOSE_FILE" up -d --no-deps celery celery-beat
-
-echo "==> Rolling out frontend..."
-docker rollout -f "$COMPOSE_FILE" frontend -t 40
-
-# echo "==> Reconciling any other changes (Caddyfile, env, compose file)..."
-# docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
-
-echo "==> Cleaning up old images..."
-docker image prune -f >/dev/null
+echo "==> Starting server..."
+docker compose -f "$COMPOSE_FILE" up -d
 
 echo "==> Deploy complete."
