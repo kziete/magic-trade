@@ -40,7 +40,7 @@ export default function UserProfileSidebar({ username, bio }: UserProfileSidebar
           {username}
         </Text>
         {bio && (
-          <Text size="sm" c="dimmed" ta="center">
+          <Text size="sm" c="dimmed" ta="center" style={{ whiteSpace: "pre-wrap" }}>
             {bio}
           </Text>
         )}
