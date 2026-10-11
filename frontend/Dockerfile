@@ -15,6 +15,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # container runtime.
 ARG BACKEND_INTERNAL_URL=http://web:8000
 ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
+# NEXT_PUBLIC_ vars are inlined into the bundle at build time, so the GA
+# measurement ID must be passed as a build arg, not just a runtime env var.
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=""
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 # V8 sizes its default heap off total *host* memory, not a container's cgroup
 # --memory limit, so left alone it can try to grow past a constrained build
 # container's cap and get SIGKILLed by the kernel (seen in production: the

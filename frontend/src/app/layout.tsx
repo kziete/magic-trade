@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { MantineProvider, ColorSchemeScript, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import StoreProvider from "@/lib/StoreProvider";
@@ -29,6 +30,13 @@ export const metadata: Metadata = {
     title: "Cardtones",
     description: "Trade Magic cards",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
@@ -56,6 +64,9 @@ export default function RootLayout({
           </MantineProvider>
         </StoreProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+      )}
     </html>
   );
 }

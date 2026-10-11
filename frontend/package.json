@@ -12,6 +12,7 @@
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
     "@mantine/notifications": "^7.17.8",
+    "@next/third-parties": "^16.4.0",
     "@reduxjs/toolkit": "^2.12.0",
     "@tabler/icons-react": "^3.44.0",
     "next": "16.2.10",
