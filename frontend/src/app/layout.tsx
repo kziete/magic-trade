@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { MantineProvider, ColorSchemeScript, Box } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import StoreProvider from "@/lib/StoreProvider";
@@ -46,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-mantine-color-scheme="dark" suppressHydrationWarning>
+      {process.env.NEXT_PUBLIC_GTM_ID && (
+        <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+      )}
       <head>
         <ColorSchemeScript defaultColorScheme="dark" />
       </head>
@@ -64,9 +67,6 @@ export default function RootLayout({
           </MantineProvider>
         </StoreProvider>
       </body>
-      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-      )}
     </html>
   );
 }
