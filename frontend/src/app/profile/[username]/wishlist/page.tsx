@@ -36,7 +36,7 @@ function UserWishlistPageContent() {
   const isOwnProfile = !!user && user.username === username;
 
   const [panelOpened, setPanelOpened] = useState(() => searchParams.get("open") === "add");
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const isFirstRender = useRef(true);

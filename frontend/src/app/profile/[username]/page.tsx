@@ -38,7 +38,7 @@ function UserInventoryPageContent() {
 
   const [panelOpened, setPanelOpened] = useState(() => searchParams.get("open") === "add");
   const [importPanelOpened, setImportPanelOpened] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const isFirstRender = useRef(true);
