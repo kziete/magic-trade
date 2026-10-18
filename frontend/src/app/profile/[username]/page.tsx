@@ -14,9 +14,15 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useDebouncedValue, useClipboard } from "@mantine/hooks";
-import { IconPlus, IconUpload, IconSearch, IconShare } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
+import { IconPlus, IconUpload, IconSearch, IconShare, IconPhoto } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
-import { useGetInventoryQuery, useGetUserInventoryQuery, useDeleteFromInventoryMutation } from "@/lib/api";
+import {
+  useGetInventoryQuery,
+  useGetUserInventoryQuery,
+  useDeleteFromInventoryMutation,
+  useExportInventoryMutation,
+} from "@/lib/api";
 import { useSortParams } from "@/lib/useSortParams";
 import { userProfileRoutes } from "@/lib/routes";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
@@ -94,10 +100,39 @@ function UserInventoryPageContent() {
   }, [debouncedSearch]);
 
   const [deleteFromInventory] = useDeleteFromInventoryMutation();
+  const [exportInventory, { isLoading: isExporting }] = useExportInventoryMutation();
 
   const handleDelete = async (id: number, cardName: string) => {
     if (confirm(`¿Eliminar "${cardName}" del inventario?`)) {
       await deleteFromInventory(id);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const { blob, filename, truncated } = await exportInventory().unwrap();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      if (truncated) {
+        notifications.show({
+          color: "yellow",
+          title: "Exportación parcial",
+          message: "Tu inventario tiene muchas cartas: se exportaron solo las primeras 300.",
+        });
+      }
+    } catch {
+      notifications.show({
+        color: "red",
+        title: "Error",
+        message: "No se pudo exportar el inventario",
+      });
     }
   };
 
@@ -141,6 +176,17 @@ function UserInventoryPageContent() {
             <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportPanelOpened(true)}>
               Importar
             </Button>
+            <Tooltip label="Genera un ZIP con imágenes y precios de tus cartas" position="bottom" withArrow>
+              <Button
+                variant="light"
+                leftSection={<IconPhoto size={16} />}
+                onClick={handleExport}
+                loading={isExporting}
+                disabled={!inventoryData || inventoryData.count === 0}
+              >
+                Exportar
+              </Button>
+            </Tooltip>
             <Button leftSection={<IconPlus size={16} />} onClick={() => setPanelOpened(true)}>
               Agregar
             </Button>

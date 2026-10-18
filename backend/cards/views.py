@@ -1,6 +1,6 @@
 import io
 from django.contrib.auth.models import User
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
 from rest_framework.views import APIView
@@ -20,6 +20,7 @@ from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 from .pricing import get_variant_price, price_value_for_sort
+from .export import build_inventory_export
 
 def _annotate_fallback_image(queryset):
     first_variant_image = (
@@ -671,3 +672,25 @@ class InventoryImportView(APIView):
             'skipped': result.skipped,
             'errors': result.errors[:50],
         })
+
+
+class InventoryExportView(APIView):
+    """GET /api/inventory/export/ -- ZIP with one price-tagged JPEG per
+    inventory row (for sharing/listing cards) plus an inventario.csv summary."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        queryset = Available.objects.filter(user=request.user).order_by('-id')
+        if not queryset.exists():
+            return Response(
+                {'error': 'El inventario está vacío'}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        zip_bytes, truncated = build_inventory_export(queryset)
+
+        filename = f"inventario_{request.user.username}_{timezone.now():%Y%m%d}.zip"
+        response = HttpResponse(zip_bytes, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        if truncated:
+            response['X-Export-Truncated'] = 'true'
+        return response

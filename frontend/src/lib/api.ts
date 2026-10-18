@@ -166,6 +166,12 @@ export interface ImportInventoryResult {
   errors: string[];
 }
 
+export interface ExportInventoryResult {
+  blob: Blob;
+  filename: string;
+  truncated: boolean;
+}
+
 export interface UserProfile {
   username: string;
   bio: string | null;
@@ -416,6 +422,21 @@ export const cardsApi = createApi({
       },
       invalidatesTags: ["Inventory", "Available", "Wanted"],
     }),
+    exportInventory: builder.mutation<ExportInventoryResult, void>({
+      query: () => ({
+        url: "inventory/export/",
+        responseHandler: async (response: Response) => {
+          const blob = await response.blob();
+          const disposition = response.headers.get("Content-Disposition") || "";
+          const match = /filename="?([^"]+)"?/.exec(disposition);
+          return {
+            blob,
+            filename: match ? match[1] : "inventario.zip",
+            truncated: response.headers.get("X-Export-Truncated") === "true",
+          };
+        },
+      }),
+    }),
   }),
 });
 
@@ -434,6 +455,7 @@ export const {
   useGetInventoryWantedByQuery,
   useGetUserInventoryQuery,
   useImportInventoryMutation,
+  useExportInventoryMutation,
   useGetWishlistQuery,
   useAddToWishlistMutation,
   useDeleteFromWishlistMutation,
