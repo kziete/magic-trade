@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Group, Button, Text, Menu, Avatar, ActionIcon, Box, Container } from "@mantine/core";
-import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart, IconEye } from "@tabler/icons-react";
+import { IconUser, IconLogout, IconCards, IconUserCircle, IconHeart } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { userProfileRoutes } from "@/lib/routes";
 import CardSearch from "@/components/CardSearch";
@@ -13,6 +13,8 @@ export default function Header() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const displayName = user?.username ?? "";
+  const inventoryHref = user ? userProfileRoutes.inventory(user.username) : "/inventory";
+  const wishlistHref = user ? userProfileRoutes.wishlist(user.username) : "/wishlist";
 
   const handleLogout = () => {
     router.replace("/");
@@ -41,26 +43,26 @@ export default function Header() {
           <Group gap="xs" wrap="nowrap">
             {/* Desktop */}
             <Box visibleFrom="sm">
-              <Link href="/inventory" style={{ textDecoration: "none" }}>
+              <Link href={inventoryHref} style={{ textDecoration: "none" }}>
                 <Button variant="subtle">Inventario</Button>
               </Link>
             </Box>
             <Box visibleFrom="sm">
-              <Link href="/wishlist" style={{ textDecoration: "none" }}>
+              <Link href={wishlistHref} style={{ textDecoration: "none" }}>
                 <Button variant="subtle">Wishlist</Button>
               </Link>
             </Box>
 
             {/* Mobile */}
             <Box hiddenFrom="sm">
-              <Link href="/inventory">
+              <Link href={inventoryHref}>
                 <ActionIcon variant="subtle" size="lg">
                   <IconCards size={20} />
                 </ActionIcon>
               </Link>
             </Box>
             <Box hiddenFrom="sm">
-              <Link href="/wishlist">
+              <Link href={wishlistHref}>
                 <ActionIcon variant="subtle" size="lg">
                   <IconHeart size={20} />
                 </ActionIcon>
@@ -83,13 +85,6 @@ export default function Header() {
                       </Button>
                     </Menu.Target>
                     <Menu.Dropdown>
-                      <Menu.Item
-                        component={Link}
-                        href={userProfileRoutes.inventory(displayName)}
-                        leftSection={<IconEye size={16} />}
-                      >
-                        Ver mi perfil público
-                      </Menu.Item>
                       <Menu.Item
                         component={Link}
                         href="/profile"
@@ -120,13 +115,6 @@ export default function Header() {
                     <Menu.Dropdown>
                       <Menu.Label>{displayName}</Menu.Label>
                       <Menu.Divider />
-                      <Menu.Item
-                        component={Link}
-                        href={userProfileRoutes.inventory(displayName)}
-                        leftSection={<IconEye size={16} />}
-                      >
-                        Ver mi perfil público
-                      </Menu.Item>
                       <Menu.Item
                         component={Link}
                         href="/profile"

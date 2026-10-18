@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Card, Stack, Avatar, Text, Button, Modal, Group } from "@mantine/core";
-import { IconUser, IconMessageCircle } from "@tabler/icons-react";
+import { IconUser, IconMessageCircle, IconUserCircle } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import { loginRoute } from "@/lib/routes";
 import ContactUserPanel from "@/components/ContactUserPanel";
@@ -45,7 +45,17 @@ export default function UserProfileSidebar({ username, bio }: UserProfileSidebar
           </Text>
         )}
 
-        {!isOwnProfile && (
+        {isOwnProfile ? (
+          <Button
+            component={Link}
+            href="/profile"
+            variant="light"
+            leftSection={<IconUserCircle size={16} />}
+            fullWidth
+          >
+            Editar perfil
+          </Button>
+        ) : (
           <Button
             variant="light"
             leftSection={<IconMessageCircle size={16} />}
