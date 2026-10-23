@@ -16,7 +16,7 @@ from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
 from accounts.models import Profile
 from .models import Card, Variant, Available, Wanted, Contact, Conversation, Message
-from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, AvailableUpdateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
+from .serializers import CardSerializer, CardDetailSerializer, CardSitemapSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, AvailableUpdateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 from .pricing import get_variant_price, price_value_for_sort
@@ -156,6 +156,17 @@ class CardDetailView(RetrieveAPIView):
     serializer_class = CardDetailSerializer
     queryset = Card.objects.all()
     lookup_field = 'pk'
+
+
+class CardSitemapListView(ListAPIView):
+    """Cards with at least one active listing -- the set worth indexing,
+    as opposed to the full ~39k Scryfall catalog most of which nobody trades."""
+    serializer_class = CardSitemapSerializer
+    pagination_class = None
+    authentication_classes = []
+
+    def get_queryset(self):
+        return Card.objects.filter(variant__available__isnull=False).distinct().order_by('id')
 
 
 class CardWantedListView(ListAPIView):

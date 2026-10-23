@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import CardListView, CardDetailView, CardWantedListView, VariantListView, VariantDetailView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, InventoryExportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView, ConversationListView, ConversationMessagesView
+from .views import CardListView, CardDetailView, CardSitemapListView, CardWantedListView, VariantListView, VariantDetailView, AvailableListView, InventoryListView, InventoryDetailView, AvailableWantedByView, UserInventoryListView, InventoryImportView, InventoryExportView, UserProfileView, LatestAvailableListView, WishlistListView, WishlistDetailView, WishlistMatchesView, UserWishlistListView, ContactUserView, UserMatchesAvailableView, UserMatchesWantedView, NotificationPollView, ContactHistoryListView, ContactMarkReadView, ContactDetailView, ContactRetrieveView, ConversationListView, ConversationMessagesView
 
 urlpatterns = [
     path('cards/', CardListView.as_view()),
+    path('cards/sitemap/', CardSitemapListView.as_view()),
     path('cards/<int:pk>/', CardDetailView.as_view()),
     path('cards/<int:card_id>/variants/', VariantListView.as_view()),
     path('variants/<int:pk>/', VariantDetailView.as_view()),

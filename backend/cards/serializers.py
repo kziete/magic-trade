@@ -17,6 +17,12 @@ class CardSerializer(serializers.ModelSerializer):
         return f'/api/cards/{obj.id}/variants/'
 
 
+class CardSitemapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = ['id', 'name']
+
+
 class CardDetailSerializer(CardSerializer):
     viewer_has_it = serializers.SerializerMethodField()
     viewer_wants_it = serializers.SerializerMethodField()

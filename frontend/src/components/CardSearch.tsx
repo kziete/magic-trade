@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Autocomplete, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSearchCardsQuery } from "@/lib/api";
+import { searchRoutes } from "@/lib/routes";
 
 interface CardSearchProps {
   initialValue?: string;
@@ -38,7 +39,7 @@ export default function CardSearch({
   const handleSelect = (value: string) => {
     const card = cards?.find((c) => c.id.toString() === value);
     if (card) {
-      router.push(`/search/${card.id}`);
+      router.push(searchRoutes.detail(card.id, card.name));
     }
   };
 

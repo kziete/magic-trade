@@ -1,3 +1,9 @@
+import { slugify } from "./slug";
+
+export const searchRoutes = {
+  detail: (cardId: number, cardName: string) => `/search/${cardId}/${slugify(cardName)}`,
+};
+
 export const userProfileRoutes = {
   inventory: (username: string) => `/profile/${username}`,
   wishlist: (username: string) => `/profile/${username}/wishlist`,
