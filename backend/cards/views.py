@@ -2,7 +2,7 @@ import io
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +16,7 @@ from django.db.models.functions import Coalesce
 from kombu.exceptions import OperationalError
 from accounts.models import Profile
 from .models import Card, Variant, Available, Wanted, Contact, Conversation, Message
-from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
+from .serializers import CardSerializer, CardDetailSerializer, VariantSerializer, VariantDetailSerializer, AvailableSerializer, AvailableCreateSerializer, AvailableUpdateSerializer, WantedSerializer, WantedCreateSerializer, ContactUserSerializer, ContactSerializer, ContactDetailSerializer, ConversationSerializer, MessageSerializer, MessageCreateSerializer
 from .services import load_inventory, LOADERS
 from .tasks import send_contact_email
 from .pricing import get_variant_price, price_value_for_sort
@@ -250,9 +250,13 @@ class InventoryListView(AvailableSortMixin, ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class InventoryDetailView(RetrieveDestroyAPIView):
+class InventoryDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AvailableSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ('PUT', 'PATCH'):
+            return AvailableUpdateSerializer
+        return AvailableSerializer
 
     def get_queryset(self):
         return Available.objects.filter(user=self.request.user)

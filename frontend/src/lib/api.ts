@@ -139,6 +139,14 @@ export interface CreateAvailableRequest {
   quantity: number;
 }
 
+export interface UpdateAvailableRequest {
+  id: number;
+  finish: string;
+  condition: string;
+  language: string;
+  quantity: number;
+}
+
 export interface Wanted {
   id: number;
   variant_id: number | null;
@@ -264,6 +272,14 @@ export const cardsApi = createApi({
       query: (body) => ({
         url: "inventory/",
         method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Inventory", "Available", "Wanted"],
+    }),
+    updateInventory: builder.mutation<Available, UpdateAvailableRequest>({
+      query: ({ id, ...body }) => ({
+        url: `inventory/${id}/`,
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["Inventory", "Available", "Wanted"],
@@ -451,6 +467,7 @@ export const {
   useGetLatestAvailableQuery,
   useGetInventoryQuery,
   useAddToInventoryMutation,
+  useUpdateInventoryMutation,
   useDeleteFromInventoryMutation,
   useGetInventoryWantedByQuery,
   useGetUserInventoryQuery,

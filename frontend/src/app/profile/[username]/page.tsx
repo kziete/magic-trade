@@ -18,6 +18,7 @@ import { notifications } from "@mantine/notifications";
 import { IconPlus, IconUpload, IconSearch, IconShare, IconPhoto } from "@tabler/icons-react";
 import { useAuth } from "@/lib/AuthProvider";
 import {
+  Available,
   useGetInventoryQuery,
   useGetUserInventoryQuery,
   useDeleteFromInventoryMutation,
@@ -26,6 +27,7 @@ import {
 import { useSortParams } from "@/lib/useSortParams";
 import { userProfileRoutes } from "@/lib/routes";
 import AddInventoryPanel from "@/components/AddInventoryPanel";
+import EditInventoryPanel from "@/components/EditInventoryPanel";
 import ImportInventoryPanel from "@/components/ImportInventoryPanel";
 import InventoryTable from "@/components/InventoryTable";
 import InventoryGrid from "@/components/InventoryGrid";
@@ -44,6 +46,7 @@ function UserInventoryPageContent() {
 
   const [panelOpened, setPanelOpened] = useState(() => searchParams.get("open") === "add");
   const [importPanelOpened, setImportPanelOpened] = useState(false);
+  const [editingItem, setEditingItem] = useState<Available | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
@@ -101,6 +104,10 @@ function UserInventoryPageContent() {
 
   const [deleteFromInventory] = useDeleteFromInventoryMutation();
   const [exportInventory, { isLoading: isExporting }] = useExportInventoryMutation();
+
+  const handleEdit = (item: Available) => {
+    setEditingItem(item);
+  };
 
   const handleDelete = async (id: number, cardName: string) => {
     if (confirm(`¿Eliminar "${cardName}" del inventario?`)) {
@@ -213,6 +220,7 @@ function UserInventoryPageContent() {
           error={!!error}
           emptyMessage={emptyMessage}
           onDelete={isOwnProfile ? handleDelete : undefined}
+          onEdit={isOwnProfile ? handleEdit : undefined}
           showMatchCount={isOwnProfile}
           sort={sort}
           order={order}
@@ -225,6 +233,7 @@ function UserInventoryPageContent() {
           error={!!error}
           emptyMessage={emptyMessage}
           onDelete={isOwnProfile ? handleDelete : undefined}
+          onEdit={isOwnProfile ? handleEdit : undefined}
           showMatchCount={isOwnProfile}
           cols={{ base: 2, xs: 2, sm: 3, md: 4 }}
           sort={sort}
@@ -253,6 +262,11 @@ function UserInventoryPageContent() {
           <ImportInventoryPanel
             opened={importPanelOpened}
             onClose={() => setImportPanelOpened(false)}
+          />
+
+          <EditInventoryPanel
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
           />
         </>
       )}

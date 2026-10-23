@@ -7,8 +7,9 @@ import {
   Center,
   Text,
   ActionIcon,
+  Group,
 } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconPencil } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available, SortField, SortOrder } from "@/lib/api";
 import { cardRoutes } from "@/lib/routes";
@@ -22,6 +23,7 @@ interface InventoryTableProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  onEdit?: (item: Available) => void;
   showMatchCount?: boolean;
   sort: SortField | undefined;
   order: SortOrder;
@@ -34,6 +36,7 @@ export default function InventoryTable({
   error,
   emptyMessage,
   onDelete,
+  onEdit,
   showMatchCount = false,
   sort,
   order,
@@ -75,7 +78,7 @@ export default function InventoryTable({
           <Table.Th>Cantidad</Table.Th>
           <SortableTh field="price" label="Precio" activeSort={sort} order={order} onSort={onSortChange} />
           {showMatchCount && <Table.Th>Buscan</Table.Th>}
-          {onDelete && <Table.Th></Table.Th>}
+          {(onEdit || onDelete) && <Table.Th></Table.Th>}
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -126,15 +129,28 @@ export default function InventoryTable({
                 )}
               </Table.Td>
             )}
-            {onDelete && (
+            {(onEdit || onDelete) && (
               <Table.Td>
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() => onDelete(item.id, item.card_name)}
-                >
-                  <IconTrash size={16} />
-                </ActionIcon>
+                <Group gap={4} wrap="nowrap">
+                  {onEdit && (
+                    <ActionIcon
+                      variant="subtle"
+                      color="blue"
+                      onClick={() => onEdit(item)}
+                    >
+                      <IconPencil size={16} />
+                    </ActionIcon>
+                  )}
+                  {onDelete && (
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      onClick={() => onDelete(item.id, item.card_name)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  )}
+                </Group>
               </Table.Td>
             )}
           </Table.Tr>

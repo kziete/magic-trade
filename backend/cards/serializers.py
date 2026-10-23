@@ -88,6 +88,14 @@ class AvailableCreateSerializer(serializers.ModelSerializer):
         fields = ['variant', 'finish', 'condition', 'language', 'quantity']
 
 
+class AvailableUpdateSerializer(serializers.ModelSerializer):
+    quantity = serializers.IntegerField(min_value=1)
+
+    class Meta:
+        model = Available
+        fields = ['finish', 'condition', 'language', 'quantity']
+
+
 class WantedSerializer(serializers.ModelSerializer):
     card_name = serializers.CharField(source='card.name', read_only=True)
     variant_id = serializers.SerializerMethodField()

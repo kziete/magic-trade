@@ -14,7 +14,7 @@ import {
   Box,
   Tooltip,
 } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconPencil } from "@tabler/icons-react";
 import Link from "next/link";
 import { Available, SortField, SortOrder } from "@/lib/api";
 import { DEFAULT_FINISH, DEFAULT_CONDITION, DEFAULT_LANGUAGE, DEFAULT_QUANTITY } from "@/lib/cardDefaults";
@@ -29,6 +29,7 @@ interface InventoryGridProps {
   error: boolean;
   emptyMessage: string;
   onDelete?: (id: number, cardName: string) => void;
+  onEdit?: (item: Available) => void;
   cols?: ComponentProps<typeof SimpleGrid>["cols"];
   showMatchCount?: boolean;
   sort?: SortField;
@@ -42,6 +43,7 @@ export default function InventoryGrid({
   error,
   emptyMessage,
   onDelete,
+  onEdit,
   cols,
   showMatchCount = false,
   sort,
@@ -73,6 +75,23 @@ export default function InventoryGrid({
               withBorder
               style={{ position: "relative" }}
             >
+              {onEdit && (
+                <ActionIcon
+                  variant="filled"
+                  color="blue"
+                  size="sm"
+                  radius="xl"
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: 8,
+                    zIndex: 10,
+                  }}
+                  onClick={() => onEdit(item)}
+                >
+                  <IconPencil size={14} />
+                </ActionIcon>
+              )}
               {onDelete && (
                 <ActionIcon
                   variant="filled"
