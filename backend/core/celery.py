@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
@@ -19,5 +20,9 @@ app.conf.beat_schedule = {
     'refresh-active-card-prices': {
         'task': 'cards.tasks.refresh_active_card_prices',
         'schedule': settings.CARD_PRICE_REFRESH_INTERVAL_MINUTES * 60,
+    },
+    'check-unread-messages': {
+        'task': 'cards.tasks.check_unread_messages',
+        'schedule': crontab(hour='9,21', minute=0),
     },
 }

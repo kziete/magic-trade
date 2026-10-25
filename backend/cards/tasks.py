@@ -1,4 +1,5 @@
 import time
+from collections import defaultdict
 from datetime import timedelta
 
 from celery import shared_task
@@ -9,7 +10,9 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from zavudev import ZavudevError
 
-from .models import Available, Variant, Wanted
+from accounts.models import Profile
+
+from .models import Available, Message, Variant, Wanted
 from .pricing import fetch_and_cache_variant_price
 from .zavu_client import zavu
 
@@ -100,6 +103,85 @@ def send_wishlist_notification_email(self, user_id, matches):
     )
     html_body = render_to_string('cards/wishlist_notification_email.html', {
         'matches': matches,
+        'frontend_url': settings.FRONTEND_URL,
+    })
+
+    try:
+        zavu.messages.send(
+            to=to_email,
+            channel="email",
+            subject=subject,
+            text=text,
+            html_body=html_body,
+        )
+    except ZavudevError as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task
+def check_unread_messages():
+    """Runs twice a day (see core/celery.py beat_schedule). Emails each user
+    about their unread messages, but only if at least one is newer than the
+    last one they were already notified about -- so a message that just sits
+    unread doesn't trigger a new email every run."""
+    unread_messages = Message.objects.filter(read_at__isnull=True).select_related(
+        'conversation', 'sender'
+    )
+
+    unread_by_recipient = defaultdict(list)
+    for message in unread_messages:
+        conversation = message.conversation
+        recipient_id = (
+            conversation.user_b_id if message.sender_id == conversation.user_a_id else conversation.user_a_id
+        )
+        unread_by_recipient[recipient_id].append(message)
+
+    for recipient_id, messages in unread_by_recipient.items():
+        profile, _ = Profile.objects.get_or_create(user_id=recipient_id)
+        max_id = max(message.id for message in messages)
+
+        has_new = profile.last_notified_unread_message_id is None or max_id > profile.last_notified_unread_message_id
+        if profile.last_notified_unread_message_id != max_id:
+            profile.last_notified_unread_message_id = max_id
+            profile.save(update_fields=['last_notified_unread_message_id'])
+
+        if not has_new:
+            continue
+
+        conversations = {}
+        for message in messages:
+            conversations.setdefault(
+                message.conversation_id,
+                {'conversation_id': message.conversation_id, 'username': message.sender.username, 'count': 0},
+            )
+            conversations[message.conversation_id]['count'] += 1
+
+        send_unread_messages_notification_email.delay(recipient_id, list(conversations.values()))
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
+def send_unread_messages_notification_email(self, user_id, conversations):
+    try:
+        user = User.objects.select_related('profile').get(pk=user_id)
+    except User.DoesNotExist:
+        return
+
+    profile = getattr(user, 'profile', None)
+    to_email = (profile.contact_email if profile else None) or user.email
+    if not to_email:
+        return
+
+    total = sum(c['count'] for c in conversations)
+    subject = f"Tienes {total} mensaje{'s' if total != 1 else ''} sin leer"
+
+    text_lines = [
+        f"- {c['count']} mensaje{'s' if c['count'] != 1 else ''} de {c['username']}: "
+        f"{settings.FRONTEND_URL}/messages/{c['conversation_id']}"
+        for c in conversations
+    ]
+    text = "Tienes mensajes sin leer:\n\n" + "\n".join(text_lines)
+    html_body = render_to_string('cards/unread_messages_notification_email.html', {
+        'conversations': conversations,
         'frontend_url': settings.FRONTEND_URL,
     })
 

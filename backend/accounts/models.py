@@ -10,6 +10,7 @@ class Profile(models.Model):
     facebook_url = models.URLField(null=True, blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
+    last_notified_unread_message_id = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Profile de {self.user.username}"
