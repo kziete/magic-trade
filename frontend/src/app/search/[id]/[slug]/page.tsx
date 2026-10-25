@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { fetchCardServer } from "@/lib/serverApi";
+import { fetchCardServer, fetchCardVariantsServer } from "@/lib/serverApi";
 import { slugify } from "@/lib/slug";
 import { searchRoutes } from "@/lib/routes";
 import SearchDetailClient from "./SearchDetailClient";
@@ -31,6 +31,8 @@ export async function generateMetadata({
   params: Promise<PageParams>;
 }): Promise<Metadata> {
   const card = await loadCard(params);
+  const variants = await fetchCardVariantsServer(card.id);
+  const image = variants[0]?.image;
   const title = `${card.name} — Cardtones`;
   const description = `Cartas de ${card.name} disponibles para intercambiar en Cardtones.`;
   const canonical = searchRoutes.detail(card.id, card.name);
@@ -39,8 +41,17 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical },
-    twitter: { title, description },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      images: image ? [{ url: image, alt: card.name }] : undefined,
+    },
+    twitter: {
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
   };
 }
 
@@ -50,6 +61,28 @@ export default async function CardSearchDetailPage({
   params: Promise<PageParams>;
 }) {
   const card = await loadCard(params);
+  const variants = await fetchCardVariantsServer(card.id);
 
-  return <SearchDetailClient cardId={card.id} cardName={card.name} />;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: card.name,
+    image: variants[0]?.image,
+    description: `Cartas de ${card.name} disponibles para intercambiar en Cardtones.`,
+    url: `https://cardtones.com${searchRoutes.detail(card.id, card.name)}`,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <SearchDetailClient
+        cardId={card.id}
+        cardName={card.name}
+        initialVariants={variants}
+      />
+    </>
+  );
 }
